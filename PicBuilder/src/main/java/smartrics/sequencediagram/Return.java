@@ -9,19 +9,16 @@ public class Return extends Event{
 	public Return(String source, String dest, String code, List<String> data) {
 		super(source, dest, "", data);
 		this.code = code;
-		System.out.println(this);
 	}
 
 	public Return(String source, String dest, String code, String data) {
 		super(source, dest, "", data);
 		this.code = code;
-		System.out.println(this);
 	}
 
 	public Return(String source, String dest, String code) {
 		super(source, dest, "");
 		this.code = code;
-		System.out.println(this);
 	}
 	
 	public String getCode(){

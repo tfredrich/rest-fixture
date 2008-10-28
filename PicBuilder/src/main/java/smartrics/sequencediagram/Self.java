@@ -17,8 +17,8 @@ public class Self extends Event{
 	}
 
 	public void render(PicDiagram diagram) {
-		diagram.active(getSourceId().getObjectId());
 		diagram.step();
+		diagram.active(getSourceId().getObjectId());
 		diagram.message(getSourceId().getObjectId(), getSourceId().getObjectId(), buildLabel());
 		diagram.inactive(getSourceId().getObjectId());
 	}
