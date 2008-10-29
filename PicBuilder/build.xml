@@ -1,0 +1,25 @@
+<project name="PicBuilder" default="package" basedir=".">
+	<record name="${basedir}/${ant.project.name}.build.log" loglevel="verbose" />
+	<property name="src" value="${basedir}/src/main/java" />
+    <property name="build" value="${basedir}/build" />
+
+	<target name="init">
+        <mkdir dir="${build}" />
+	</target>
+
+	<target name="clean">
+        <delete dir="${build}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<mkdir dir="${build}/classes/main" />
+		<javac includes="**/*.java" debug="${build.debug}" destdir="${build}/classes/main">
+			<src path="${src}" />
+		</javac>
+	</target>
+
+	<target name="package" depends="compile">
+		<jar destfile="${build}/${ant.project.name}.jar" basedir="${build}/classes/main" includes="**/*" />
+	</target>
+
+</project>
