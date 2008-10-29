@@ -223,8 +223,9 @@ public class PicDiagram {
 		StringBuffer sb = new StringBuffer();
 		sb.append(".PS\n");
 		sb.append("copy \"sequence.pic\";\n\n");
-		sb.append("boxwid = 1.1;\n");
-		sb.append("movewid = 0.5;\n\n");
+		sb.append("boxwid = 0.9;\n");
+		sb.append("movewid = 0.3;\n");
+		sb.append("spacing = 0.2;\n\n");
 		return sb.toString();
 	}
 
