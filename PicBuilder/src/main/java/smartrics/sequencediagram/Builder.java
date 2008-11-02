@@ -45,4 +45,12 @@ public class Builder {
 		}
 	}
 
+	public PicDiagram getDiagram() {
+		return diagram;
+	}
+
+	public Model getModel() {
+		return model;
+	}
+
 }
