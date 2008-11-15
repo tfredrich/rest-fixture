@@ -1,8 +1,10 @@
-<project name="PicBuilder" default="package" basedir=".">
+<project name="PicBuilder" default="full" basedir=".">
 	<record name="${basedir}/${ant.project.name}.build.log" loglevel="verbose" />
 	<property name="src" value="${basedir}/src/main/java" />
     <property name="build" value="${basedir}/build" />
 
+	<target name="full" depends="clean, package" />
+	
 	<target name="init">
         <mkdir dir="${build}" />
 	</target>
@@ -13,7 +15,10 @@
 
 	<target name="compile" depends="init">
 		<mkdir dir="${build}/classes/main" />
-		<javac includes="**/*.java" debug="${build.debug}" destdir="${build}/classes/main">
+		<javac includes="**/*.java" 
+			debug="${build.debug}" 
+			destdir="${build}/classes/main"
+			target="1.5">
 			<src path="${src}" />
 		</javac>
 	</target>
