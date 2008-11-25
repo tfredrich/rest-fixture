@@ -95,7 +95,7 @@
 		</tstamp>
 		<mkdir dir="${artifacts}/docs/api" />
         <copy todir="${artifacts}/docs/api">
-            <fileset dir="lib" includes="${build.doc.api}/**/*" />
+            <fileset dir="${build.doc.api}" includes="**/*" />
         </copy>
 		<zip destfile="dist/${ant.project.name}-nodep-${TS}.zip" basedir="${artifacts}" casesensitive="true" compress="true" includes="**/*" excludes="lib/**/*.jar" />
 		<zip destfile="dist/${ant.project.name}-${TS}.zip" basedir="${artifacts}" casesensitive="true" compress="true" includes="**/*" />
