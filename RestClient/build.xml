@@ -1,0 +1,105 @@
+<project name="RestClient" default="full" basedir=".">
+	<record name="${basedir}/${ant.project.name}.build.log" loglevel="verbose" />
+
+	<property file="properties/${user.name}.properties" />
+	<property file="build.properties" />
+
+	<property name="src.unit" value="${basedir}/src/test/java" />
+	<property name="src.cat" value="${basedir}/src/test/fitnesse" />
+	<property name="src" value="${basedir}/src/main/java" />
+	<property name="resources" value="${basedir}/src/main/resources" />
+	<property name="build" value="${basedir}/build" />
+	<property name="build.doc.api" value="${build}/doc/api" />
+	<property name="dist" value="${basedir}/dist" />
+	<property name="lib" value="${basedir}/lib" />
+	<property name="reports" value="${build}/reports" />
+	<property name="artifacts" value="${dist}/artifacts" />
+
+	<path id="project.classpath">
+		<pathelement location="${src.resources}" />
+		<fileset dir="${lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<path id="test.classpath">
+		<path refid="project.classpath" />
+		<pathelement location="${build}/classes/main" />
+		<pathelement location="${build}/classes/unit" />
+	</path>
+
+	<target name="full" depends="clean, package, dist" />
+
+	<target name="init">
+		<mkdir dir="${build}" />
+		<mkdir dir="${reports}" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<mkdir dir="${build}/classes/main" />
+		<javac includes="**/*.java" debug="${build.debug}" destdir="${build}/classes/main" target="${build.target}">
+			<src path="${src}" />
+			<classpath refid="project.classpath" />
+		</javac>
+	</target>
+
+	<target name="build-doc">
+		<javadoc author="true" bottom="(c) Fabrizio Cannizzo 2008" destdir="${build.doc.api}">
+			<classpath refid="project.classpath" />
+		    <sourcepath path="${src}" />
+		</javadoc>
+	</target>
+
+	<target name="test" depends="compile">
+		<mkdir dir="${build}/classes/unit" />
+		<mkdir dir="${reports}/unit" />
+		<javac debug="${build.debug}" destdir="${build}/classes/unit">
+			<classpath refid="test.classpath" />
+			<src path="${src.unit}" />
+			<include name="**/*.java" />
+		</javac>
+		<junit errorproperty="test.failed">
+			<classpath refid="test.classpath" />
+			<formatter type="plain" />
+			<batchtest fork="yes" todir="${reports}/unit">
+				<fileset dir="${src.unit}">
+					<include name="**/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<fail if="test.failed" />
+	</target>
+
+	<target name="package" depends="compile">
+		<jar destfile="${build}/${ant.project.name}.jar" basedir="${build}/classes/main" includes="**/*" />
+	</target>
+
+	<target name="dist" depends="package, build-doc">
+		<delete dir="${dist}" />
+		<mkdir dir="${artifacts}" />
+		<copy todir="${artifacts}" file="${build}/${ant.project.name}.jar" />
+		<copy todir="${artifacts}/lib" flatten="true">
+			<fileset dir="lib" includes="**/*.jar" excludes="test/**/*.jar, log4j/**/*.jar" />
+		</copy>
+		<copy todir="${artifacts}" file="COPYING" />
+		<copy todir="${artifacts}" file="COPYING.LESSER" />
+		<copy todir="${artifacts}" file="COPYRIGHT" />
+		<copy todir="${artifacts}" file="README" />
+		<tstamp>
+			<format property="TS" pattern="yyyyMMdd" locale="en,UK" />
+		</tstamp>
+		<mkdir dir="${artifacts}/docs/api" />
+        <copy todir="${artifacts}/docs/api">
+            <fileset dir="lib" includes="${build.doc.api}/**/*" />
+        </copy>
+		<zip destfile="dist/${ant.project.name}-nodep-${TS}.zip" basedir="${artifacts}" casesensitive="true" compress="true" includes="**/*" excludes="lib/**/*.jar" />
+		<zip destfile="dist/${ant.project.name}-${TS}.zip" basedir="${artifacts}" casesensitive="true" compress="true" includes="**/*" />
+		<zip destfile="dist/${ant.project.name}-docs-${TS}.zip" basedir="${artifacts}/docs" casesensitive="true" compress="true" includes="**/*" />
+	</target>
+
+</project>
