@@ -1,9 +1,20 @@
-<project name="PicBuilder" default="package" basedir=".">
+<project name="JMeterBuilder" default="package" basedir=".">
 	<record name="${basedir}/${ant.project.name}.build.log" loglevel="verbose" />
-	<property name="src" value="${basedir}/src/main/java" />
+    <property name="src" value="${basedir}/src/main/java" />
+    <property name="jmeter.home" value="/opt/java/jakarta-jmeter-2.3.2" />
+    <property name="lib" value="${basedir}/lib" />
     <property name="build" value="${basedir}/build" />
 
-	<target name="init">
+    <path id="project.classpath">
+        <fileset dir="${lib}">
+            <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="${jmeter.home}/lib">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <target name="init">
         <mkdir dir="${build}" />
 	</target>
 
@@ -15,10 +26,14 @@
 		<mkdir dir="${build}/classes/main" />
 		<javac includes="**/*.java" debug="${build.debug}" destdir="${build}/classes/main">
 			<src path="${src}" />
+			<classpath refid="project.classpath" />
 		</javac>
 	</target>
 
 	<target name="package" depends="compile">
+		<copy todir="${build}/classes/main">
+			  <fileset dir="${src}" includes="**/*.properties" />
+		</copy>
 		<jar destfile="${build}/${ant.project.name}.jar" basedir="${build}/classes/main" includes="**/*" />
 	</target>
 
