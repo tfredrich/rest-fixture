@@ -102,6 +102,40 @@ public class RestClientImpl implements RestClient {
 			request.setTransactionId(Long.valueOf(System.currentTimeMillis()));
 		LOG.debug(request);
 		HttpMethod m = createHttpClientMethod(request);
+		configureHttpMethod(m, hostAddr, request);
+		RestResponse resp = new RestResponse();
+		resp.setTransactionId(request.getTransactionId());
+		resp.setResource(request.getResource());
+		try {
+			client.executeMethod(m);
+			for (Header h : m.getResponseHeaders()) {
+				resp.addHeader(h.getName(), h.getValue());
+			}
+			resp.setStatusCode(m.getStatusCode());
+			resp.setStatusText(m.getStatusText());
+			resp.setBody(m.getResponseBodyAsString());
+		} catch (HttpException e) {
+			String message = "Http call failed for protocol failure";
+			LOG.warn(message);
+			throw new IllegalStateException(message, e);
+		} catch (IOException e) {
+			String message = "Http call failed for IO failure";
+			LOG.warn(message);
+			throw new IllegalStateException(message, e);
+		} finally {
+			m.releaseConnection();
+		}
+		LOG.debug(resp);
+		return resp;
+	}
+
+	/**
+	 * Configures the instance of HttpMethod with the data in the request and the host address.
+	 * @param m the method class to configure
+	 * @param hostAddr the host address
+	 * @param request the rest request
+	 */
+	protected void configureHttpMethod(HttpMethod m, String hostAddr, final RestRequest request) {
 		addHeaders(m, request);
 		setUri(m, hostAddr, request);
 		m.setQueryString(request.getQuery());
@@ -133,30 +167,6 @@ public class RestClientImpl implements RestClient {
 			};
 			((EntityEnclosingMethod) m).setRequestEntity(requestEntity);
 		}
-		RestResponse resp = new RestResponse();
-		resp.setTransactionId(request.getTransactionId());
-		resp.setResource(request.getResource());
-		try {
-			client.executeMethod(m);
-			for (Header h : m.getResponseHeaders()) {
-				resp.addHeader(h.getName(), h.getValue());
-			}
-			resp.setStatusCode(m.getStatusCode());
-			resp.setStatusText(m.getStatusText());
-			resp.setBody(m.getResponseBodyAsString());
-		} catch (HttpException e) {
-			String message = "Http call failed for protocol failure";
-			LOG.warn(message);
-			throw new IllegalStateException(message, e);
-		} catch (IOException e) {
-			String message = "Http call failed for IO failure";
-			LOG.warn(message);
-			throw new IllegalStateException(message, e);
-		} finally {
-			m.releaseConnection();
-		}
-		LOG.debug(resp);
-		return resp;
 	}
 
 	private void setUri(HttpMethod m, String hostAddr, RestRequest request) {
@@ -177,12 +187,16 @@ public class RestClientImpl implements RestClient {
 		}
 	}
 
-	private void addHeaders(HttpMethod m, RestRequest request) {
-		for (RestData.Header h : request.getHeaders()) {
-			m.addRequestHeader(h.getName(), h.getValue());
-		}
-	}
-
+	/**
+	 * factory method that maps a string with a HTTP method name to an
+	 * implementation class in Apache HttpClient.
+	 * Currently the name is mapped to 
+	 * <code>org.apache.commons.httpclient.methods.%sMethod</code>
+	 * where <code>%s</code> is the parameter mName.
+	 * 
+	 * @param mName the method name
+	 * @return the method class
+	 */
 	protected String getMethodClassnameFromMethodName(String mName) {
 		return String.format("org.apache.commons.httpclient.methods.%sMethod",
 				mName);
@@ -221,4 +235,11 @@ public class RestClientImpl implements RestClient {
 		}
 
 	}
+
+	private void addHeaders(HttpMethod m, RestRequest request) {
+		for (RestData.Header h : request.getHeaders()) {
+			m.addRequestHeader(h.getName(), h.getValue());
+		}
+	}
+
 }
