@@ -3,6 +3,7 @@ package smartrics.jmeter.sampler;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
@@ -28,27 +29,37 @@ public class RestSampler extends HTTPSampler2 {
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
-    public static final String XML_DATA = "RestSampler.xml_data";
+    public static final String REQUEST_BODY = "RestSampler.request_body";
+
+    public static final String REQUEST_HEADERS = "RestSampler.request_headers";
 
     public static final String HOST_BASE_URL = "RestSampler.host_base_url";
 
-    public static final String RESOURCE = "RestSampler.resource";
+    public static final String RESOURCE = "RestSampler.resource_uri";
 
     public static final String HTTP_METHOD = "RestSampler.http_method";
 
     public RestSampler() {
     }
 
-    public void setXmlData(String data) {
-        setProperty(XML_DATA, data);
+    public void setRequestBody(String data) {
+        setProperty(REQUEST_BODY, data);
+    }
+
+    public void setRequestHeaders(String headers) {
+        setProperty(REQUEST_HEADERS, headers);
     }
 
     public void setHttpMethod(String data) {
         setProperty(HTTP_METHOD, data);
     }
 
-    public String getXmlData() {
-        return getPropertyAsString(XML_DATA);
+    public String getRequestBody() {
+        return getPropertyAsString(REQUEST_BODY);
+    }
+
+    public String getRequestHeaders() {
+        return getPropertyAsString(REQUEST_HEADERS);
     }
 
     public String getHttpMethod() {
@@ -120,8 +131,8 @@ public class RestSampler extends HTTPSampler2 {
     private String sendEntityEnclosingMethodData(EntityEnclosingMethod m, final int length) {
         // Buffer to hold the post body, except file content
         StringBuffer postedBody = new StringBuffer(1000);
-        postedBody.append(getXmlData());
-        m.setRequestEntity(new MyRequestEntity(getXmlData()));
+        postedBody.append(getRequestBody());
+        m.setRequestEntity(new MyRequestEntity(getRequestBody()));
         return postedBody.toString();
     }
 
@@ -129,28 +140,56 @@ public class RestSampler extends HTTPSampler2 {
         return m instanceof EntityEnclosingMethod;
     }
 
-    protected HTTPSampleResult sample(URL url, String /* unused */method, boolean areFollowingRedirect, int frameDepth) {
-        String urlStr = url.toString();
-        log.debug("Start : sample " + urlStr);
-
-        HttpMethodBase httpMethod;
-        httpMethod = createMethod(getHttpMethod(), urlStr);
-
-        HTTPSampleResult res = new HTTPSampleResult();
-        res.setMonitor(false);
-
-        res.setSampleLabel(urlStr); // May be replaced later
-        res.setHTTPMethod(HTTPConstants.POST);
-        res.sampleStart(); // Count the retries as well in the time
-        HttpClient client = null;
-        InputStream instream = null;
+    private URL getResourceUri() {
         try {
+            URL url = new URL(getHostBaseUrl() + getResource());
+            return url;
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException("Malformed URL. " + toString());
+        }
+    }
+
+    public String toString() {
+        return "Base host url: " + getHostBaseUrl() + ", resource: " + getResource() + ", Method: " + getMethod();
+    }
+
+    private void overrideHeaders(HttpMethodBase httpMethod) {
+        String headers = getRequestHeaders();
+        String[] header = headers.split(System.getProperty("line.separator"));
+        for (String kvp : header) {
+            int pos = kvp.indexOf(':');
+            if (pos > 0) {
+                String k = kvp.substring(0, pos).trim();
+                String v = "";
+                if (kvp.length() > pos + 1)
+                    v = kvp.substring(pos + 1).trim();
+                httpMethod.addRequestHeader(k, v);
+            }
+        }
+    }
+
+    protected HTTPSampleResult sample(URL /* unused */_url, String /* unused */_method, boolean areFollowingRedirect, int frameDepth) {
+
+        InputStream instream = null;
+        HTTPSampleResult res = new HTTPSampleResult();
+        HttpMethodBase httpMethod = null;
+        try {
+            URL url = getResourceUri();
+            httpMethod = createMethod(getHttpMethod(), url.toString());
+
+            res.setMonitor(false);
+
+            res.setSampleLabel(url.toString()); // May be replaced later
+            res.setHTTPMethod(HTTPConstants.POST);
+            res.sampleStart(); // Count the retries as well in the time
+            HttpClient client = null;
             int content_len = 0;
             if (isEntityEnclosingMethod(httpMethod))
                 setEntityEnclosingMethodHeaders((EntityEnclosingMethod) httpMethod);
             client = setupConnection(url, httpMethod, res);
             if (isEntityEnclosingMethod(httpMethod))
                 res.setQueryString(sendEntityEnclosingMethodData((EntityEnclosingMethod) httpMethod, content_len));
+            overrideHeaders(httpMethod);
             res.setRequestHeaders(getConnectionHeaders(httpMethod));
             int statusCode = client.executeMethod(httpMethod);
 
@@ -237,16 +276,17 @@ public class RestSampler extends HTTPSampler2 {
         {
             res.sampleEnd();
             HTTPSampleResult err = errorResult(e, res);
-            err.setSampleLabel("Error: " + url.toString());
+            err.setSampleLabel("Error: " + toString());
             return err;
         } catch (IOException e) {
             res.sampleEnd();
             HTTPSampleResult err = errorResult(e, res);
-            err.setSampleLabel("Error: " + url.toString());
+            err.setSampleLabel("Error: " + toString());
             return err;
         } finally {
             JOrphanUtils.closeQuietly(instream);
-            httpMethod.releaseConnection();
+            if (httpMethod != null)
+                httpMethod.releaseConnection();
         }
     }
 }

@@ -30,7 +30,7 @@
 		</javac>
 	</target>
 
-	<target name="package" depends="compile">
+	<target name="package" depends="clean, compile">
 		<copy todir="${build}/classes/main">
 			  <fileset dir="${src}" includes="**/*.properties" />
 		</copy>

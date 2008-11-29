@@ -1,8 +1,9 @@
-package smartrics.jmeter.sampler;
+package smartrics.jmeter.sampler.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
+import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
@@ -15,10 +16,13 @@ import org.apache.jorphan.gui.JLabeledChoice;
 import org.apache.jorphan.gui.JLabeledTextArea;
 import org.apache.jorphan.gui.JLabeledTextField;
 
+import smartrics.jmeter.sampler.RestSampler;
+
 public class RestGui extends AbstractSamplerGui {
     private static final long serialVersionUID = -5576774730632101012L;
     private JCheckBox useKeepAlive;
-    private JLabeledTextArea xmlData;
+    private JLabeledTextArea body;
+    private JLabeledTextArea headers;
     private JLabeledTextField hostBaseUrl;
     private JLabeledTextField resource;
     private JLabeledChoice httpMethods;
@@ -55,9 +59,10 @@ public class RestGui extends AbstractSamplerGui {
     public void clear() {
         this.httpMethods.setText("GET");
         this.hostBaseUrl.setText("");
+        this.headers.setText("");
         this.resource.setText("");
         this.useKeepAlive.setSelected(true);
-        this.xmlData.setText("");
+        this.body.setText("");
     }
 
     /**
@@ -69,11 +74,12 @@ public class RestGui extends AbstractSamplerGui {
         this.configureTestElement(s);
         if (s instanceof RestSampler) {
             RestSampler sampler = (RestSampler) s;
-            sampler.setXmlData(xmlData.getText());
+            sampler.setRequestBody(body.getText());
             sampler.setHttpMethod(httpMethods.getText());
             sampler.setUseKeepAlive(useKeepAlive.isSelected());
             sampler.setHostBaseUrl(hostBaseUrl.getText());
             sampler.setResource(resource.getText());
+            sampler.setRequestHeaders(headers.getText());
         }
     }
 
@@ -87,7 +93,7 @@ public class RestGui extends AbstractSamplerGui {
 
     private JPanel getResourceConfigPanel() {
         useKeepAlive = new JCheckBox(JMeterUtils.getResString("use_keepalive")); // $NON-NLS-1$
-        hostBaseUrl = new JLabeledTextField("Base URL");
+        hostBaseUrl = new JLabeledTextField("Base Url");
         resource = new JLabeledTextField("Resource");
         httpMethods = new JLabeledChoice("Method", new String[] { "Get", "Post", "Put", "Delete" });
         HorizontalPanel panel = new HorizontalPanel();
@@ -98,10 +104,12 @@ public class RestGui extends AbstractSamplerGui {
         return panel;
     }
 
-    private JPanel getXmlDataPanel() {
-        xmlData = new JLabeledTextArea("Body"); //$NON-NLS-1$
+    private JPanel getRequestPanel() {
+        body = new JLabeledTextArea("Body"); //$NON-NLS-1$
+        headers = new JLabeledTextArea("Headers"); //$NON-NLS-1$
         VerticalPanel panel = new VerticalPanel();
-        panel.add(xmlData, BorderLayout.CENTER);
+        panel.add(headers, BorderLayout.NORTH);
+        panel.add(body, BorderLayout.CENTER);
         return panel;
     }
 
@@ -109,14 +117,18 @@ public class RestGui extends AbstractSamplerGui {
         setLayout(new BorderLayout());
         setBorder(makeBorder());
         add(makeTitlePanel(), BorderLayout.NORTH);
-        add(getXmlDataPanel(), BorderLayout.CENTER);
-        add(getResourceConfigPanel(), BorderLayout.SOUTH);
+        VerticalPanel panel = new VerticalPanel();
+        panel.setBorder(BorderFactory.createEtchedBorder());
+        panel.add(getResourceConfigPanel(), BorderLayout.NORTH);
+        panel.add(getRequestPanel(), BorderLayout.CENTER);
+        add(panel, BorderLayout.CENTER);
     }
 
     public void configure(TestElement el) {
         super.configure(el);
         RestSampler sampler = (RestSampler) el;
-        xmlData.setText(sampler.getXmlData());
+        body.setText(sampler.getRequestBody());
+        headers.setText(sampler.getRequestHeaders());
         useKeepAlive.setSelected(sampler.getUseKeepAlive());
         httpMethods.setText(sampler.getHttpMethod());
         resource.setText(sampler.getResource());
