@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
@@ -21,10 +23,13 @@ import smartrics.jmeter.sampler.RestSampler;
 public class RestGui extends AbstractSamplerGui {
     private static final long serialVersionUID = -5576774730632101012L;
     private JCheckBox useKeepAlive;
+    private JCheckBox automaticRedirect;
     private JLabeledTextArea body;
     private JLabeledTextArea headers;
     private JLabeledTextField hostBaseUrl;
     private JLabeledTextField resource;
+    private JLabeledTextField encoding;
+    private JLabeledTextField queryString;
     private JLabeledChoice httpMethods;
 
     public RestGui() {
@@ -58,10 +63,13 @@ public class RestGui extends AbstractSamplerGui {
 
     public void clear() {
         this.httpMethods.setText("GET");
-        this.hostBaseUrl.setText("");
+        this.hostBaseUrl.setText("http://localhost:8080");
         this.headers.setText("");
         this.resource.setText("");
+        this.encoding.setText("UTF-8");
+        this.queryString.setText("");
         this.useKeepAlive.setSelected(true);
+        this.automaticRedirect.setSelected(true);
         this.body.setText("");
     }
 
@@ -75,10 +83,13 @@ public class RestGui extends AbstractSamplerGui {
         if (s instanceof RestSampler) {
             RestSampler sampler = (RestSampler) s;
             sampler.setRequestBody(body.getText());
-            sampler.setHttpMethod(httpMethods.getText());
+            sampler.setMethod(httpMethods.getText());
             sampler.setUseKeepAlive(useKeepAlive.isSelected());
+            sampler.setAutoRedirects(automaticRedirect.isSelected());
             sampler.setHostBaseUrl(hostBaseUrl.getText());
             sampler.setResource(resource.getText());
+            sampler.setContentEncoding(encoding.getText());
+            sampler.setQueryString(queryString.getText());
             sampler.setRequestHeaders(headers.getText());
         }
     }
@@ -92,15 +103,41 @@ public class RestGui extends AbstractSamplerGui {
     }
 
     private JPanel getResourceConfigPanel() {
-        useKeepAlive = new JCheckBox(JMeterUtils.getResString("use_keepalive")); // $NON-NLS-1$
-        hostBaseUrl = new JLabeledTextField("Base Url");
-        resource = new JLabeledTextField("Resource");
-        httpMethods = new JLabeledChoice("Method", new String[] { "Get", "Post", "Put", "Delete" });
-        HorizontalPanel panel = new HorizontalPanel();
-        panel.add(hostBaseUrl);
-        panel.add(resource);
-        panel.add(httpMethods);
-        panel.add(useKeepAlive);
+        automaticRedirect = new JCheckBox(JMeterUtils.getResString("follow_redirects"));
+        httpMethods = new JLabeledChoice("Method", new String[] { "GET", "POST", "PUT", "DELETE" });
+        httpMethods.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JLabeledChoice c = (JLabeledChoice) e.getSource();
+                String text = c.getText();
+                if ("PUT".equals(text) || "POST".equals(text)) {
+                    automaticRedirect.setSelected(false);
+                    automaticRedirect.setEnabled(false);
+                } else {
+                    automaticRedirect.setEnabled(true);
+                }
+            }
+        });
+        useKeepAlive = new JCheckBox(JMeterUtils.getResString("use_keepalive"));
+        hostBaseUrl = new JLabeledTextField("Base Url", 25);
+        resource = new JLabeledTextField("Resource", 20);
+        queryString = new JLabeledTextField("QueryString", 30);
+        encoding = new JLabeledTextField("Content Encoding", 8);
+        VerticalPanel panel = new VerticalPanel();
+        HorizontalPanel panel1 = new HorizontalPanel();
+        panel1.add(httpMethods);
+        panel1.add(useKeepAlive);
+        panel1.add(automaticRedirect);
+        HorizontalPanel panel2 = new HorizontalPanel();
+        panel2.add(hostBaseUrl);
+        panel2.add(resource);
+        HorizontalPanel panel3 = new HorizontalPanel();
+        panel3.add(queryString);
+        panel3.add(encoding);
+        panel.add(panel1);
+        panel.add(panel2);
+        panel.add(panel3);
         return panel;
     }
 
@@ -130,8 +167,11 @@ public class RestGui extends AbstractSamplerGui {
         body.setText(sampler.getRequestBody());
         headers.setText(sampler.getRequestHeaders());
         useKeepAlive.setSelected(sampler.getUseKeepAlive());
-        httpMethods.setText(sampler.getHttpMethod());
+        automaticRedirect.setSelected(sampler.getAutoRedirects());
+        httpMethods.setText(sampler.getMethod());
         resource.setText(sampler.getResource());
+        queryString.setText(sampler.getQueryString());
+        encoding.setText(sampler.getContentEncoding());
         hostBaseUrl.setText(sampler.getHostBaseUrl());
     }
 
