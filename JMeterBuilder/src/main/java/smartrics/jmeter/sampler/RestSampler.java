@@ -76,29 +76,50 @@ public class RestSampler extends HTTPSampler2 {
     }
 
     public void setHostBaseUrl(final String data) {
-        String d = data;
-        if (data != null || "".equals(data.trim())) {
-            d = DEFAULT_URL;
-        }
-        try {
-            URL u = new URL(data);
-            setProperty(PROTOCOL, u.getProtocol());
-            setProperty(DOMAIN, u.getHost());
-            setProperty(PORT, Integer.toString(u.getPort()));
-            setProperty(URL, u.toString());
-
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid url " + data, e);
-        }
+        setProperty(URL, data);
     }
 
     public String getHostBaseUrl() {
-        try {
-            URL u = new URL(getPropertyAsString(PROTOCOL), getPropertyAsString(DOMAIN), getPropertyAsInt(PORT), "");
-            return u.toString();
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid data to build url", e);
+        return getPropertyAsString(URL);
+    }
+
+    public void setDomain(String value) {
+        if (value == null)
+            value = getHostBaseUrlAsURL().getHost();
+        setProperty(DOMAIN, value);
+    }
+
+    public String getDomain() {
+        if (getPropertyAsString(DOMAIN) == null) {
+            setDomain(getHostBaseUrlAsURL().getHost());
         }
+        return getPropertyAsString(DOMAIN);
+    }
+
+    public void setProtocol(String value) {
+        if (value == null)
+            value = getHostBaseUrlAsURL().getProtocol();
+        setProperty(PROTOCOL, value);
+    }
+
+    public String getProtocol() {
+        if (getPropertyAsString(PROTOCOL) == null) {
+            setProtocol(getHostBaseUrlAsURL().getProtocol());
+        }
+        return getPropertyAsString(PROTOCOL);
+    }
+
+    public void setPort(int value) {
+        if (value == -1)
+            value = getHostBaseUrlAsURL().getPort();
+        setProperty(PORT, Integer.toString(value));
+    }
+
+    public int getPort() {
+        if (getPropertyAsString(PORT) == null) {
+            setPort(getHostBaseUrlAsURL().getPort());
+        }
+        return getPropertyAsInt(PORT);
     }
 
     public String toString() {
@@ -110,6 +131,8 @@ public class RestSampler extends HTTPSampler2 {
         String[] header = headers.split(System.getProperty("line.separator"));
         for (String kvp : header) {
             int pos = kvp.indexOf(':');
+            if (pos < 0)
+                pos = kvp.indexOf('=');
             if (pos > 0) {
                 String k = kvp.substring(0, pos).trim();
                 String v = "";
@@ -148,9 +171,16 @@ public class RestSampler extends HTTPSampler2 {
                 String postBody = sendData((EntityEnclosingMethod) httpMethod);
                 res.setResponseData(postBody.getBytes());
             }
+            overrideHeaders(httpMethod);
             res.setRequestHeaders(getConnectionHeaders(httpMethod));
 
-            int statusCode = client.executeMethod(httpMethod);
+            int statusCode = -1;
+            try {
+                client.executeMethod(httpMethod);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                throw e;
+            }
 
             // Request sent. Now get the response:
             instream = httpMethod.getResponseBodyAsStream();
@@ -191,7 +221,7 @@ public class RestSampler extends HTTPSampler2 {
             if (res.isRedirect()) {
                 final Header headerLocation = httpMethod.getResponseHeader(HEADER_LOCATION);
                 if (headerLocation == null) { // HTTP protocol violation, but
-                                              // avoids NPE
+                    // avoids NPE
                     throw new IllegalArgumentException("Missing location header");
                 }
                 res.setRedirectLocation(headerLocation.getValue());
@@ -265,7 +295,17 @@ public class RestSampler extends HTTPSampler2 {
      */
     private String sendData(EntityEnclosingMethod method) throws IOException {
         method.setRequestEntity(new MyRequestEntity(getRequestBody()));
-        overrideHeaders(method);
         return getRequestBody();
     }
+
+    private URL getHostBaseUrlAsURL() {
+        try {
+            URL u = new URL(getHostBaseUrl());
+            return u;
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid data to build url: " + getHostBaseUrl(), e);
+        }
+
+    }
+
 }

@@ -55,12 +55,6 @@ public class RestGui extends AbstractSamplerGui {
         return sampler;
     }
 
-    protected void configureTestElement(TestElement e) {
-        e.setName(getName());
-        e.setProperty(TestElement.GUI_CLASS, this.getClass().getName());
-        e.setProperty(TestElement.TEST_CLASS, e.getClass().getName());
-    }
-
     public void clear() {
         this.httpMethods.setText("GET");
         this.hostBaseUrl.setText("http://localhost:8080");
@@ -82,6 +76,12 @@ public class RestGui extends AbstractSamplerGui {
         this.configureTestElement(s);
         if (s instanceof RestSampler) {
             RestSampler sampler = (RestSampler) s;
+            // try {
+            // GuiPackage.getInstance().getReplacer().replaceValues(sampler);
+            // } catch (InvalidVariableException e) {
+            // // TODO Auto-generated catch block
+            // e.printStackTrace();
+            // }
             sampler.setRequestBody(body.getText());
             sampler.setMethod(httpMethods.getText());
             sampler.setUseKeepAlive(useKeepAlive.isSelected());
@@ -99,7 +99,6 @@ public class RestGui extends AbstractSamplerGui {
      */
     public void clearGui() {
         super.clearGui();
-        clear();
     }
 
     private JPanel getResourceConfigPanel() {
