@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.jmeter.functions.InvalidVariableException;
+import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
@@ -46,7 +48,7 @@ public class RestGui extends AbstractSamplerGui {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.apache.jmeter.gui.JMeterGUIComponent#createTestElement()
      */
     public TestElement createTestElement() {
@@ -57,7 +59,7 @@ public class RestGui extends AbstractSamplerGui {
 
     public void clear() {
         this.httpMethods.setText("GET");
-        this.hostBaseUrl.setText("http://localhost:8080");
+        this.hostBaseUrl.setText("");
         this.headers.setText("");
         this.resource.setText("");
         this.encoding.setText("UTF-8");
@@ -69,19 +71,18 @@ public class RestGui extends AbstractSamplerGui {
 
     /**
      * Modifies a given TestElement to mirror the data in the gui components.
-     * 
+     *
      * @see org.apache.jmeter.gui.JMeterGUIComponent#modifyTestElement(TestElement)
      */
     public void modifyTestElement(TestElement s) {
         this.configureTestElement(s);
         if (s instanceof RestSampler) {
             RestSampler sampler = (RestSampler) s;
-            // try {
-            // GuiPackage.getInstance().getReplacer().replaceValues(sampler);
-            // } catch (InvalidVariableException e) {
-            // // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // }
+            try {
+                GuiPackage.getInstance().getReplacer().replaceValues(sampler);
+            } catch (InvalidVariableException e) {
+                e.printStackTrace();
+            }
             sampler.setRequestBody(body.getText());
             sampler.setMethod(httpMethods.getText());
             sampler.setUseKeepAlive(useKeepAlive.isSelected());

@@ -28,13 +28,15 @@ import org.apache.log.Logger;
 public class RestSampler extends HTTPSampler2 {
     private static final long serialVersionUID = -5877623539165274730L;
 
-    private static final String DEFAULT_URL = "http://localhost:8080";
-
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     public static final String REQUEST_BODY = "RestSampler.request_body";
 
     public static final String QUERY_STRING = "RestSampler.query_string";
+
+    public static final String RESOURCE = "RestSampler.resource";
+
+    public static final String BASE_HOST = "RestSampler.base_host";
 
     public static final String REQUEST_HEADERS = "RestSampler.request_headers";
 
@@ -58,11 +60,11 @@ public class RestSampler extends HTTPSampler2 {
     }
 
     public void setResource(String data) {
-        setProperty(PATH, data);
+        setProperty(RESOURCE, data);
     }
 
     public String getResource() {
-        return getPropertyAsString(PATH);
+        return getPropertyAsString(RESOURCE);
     }
 
     public void setQueryString(String data) {
@@ -76,54 +78,47 @@ public class RestSampler extends HTTPSampler2 {
     }
 
     public void setHostBaseUrl(final String data) {
-        setProperty(URL, data);
+        setProperty(BASE_HOST, data);
     }
 
     public String getHostBaseUrl() {
-        return getPropertyAsString(URL);
+        return getPropertyAsString(BASE_HOST);
     }
 
-    public void setDomain(String value) {
-        if (value == null)
-            value = getHostBaseUrlAsURL().getHost();
-        setProperty(DOMAIN, value);
-    }
-
-    public String getDomain() {
-        if (getPropertyAsString(DOMAIN) == null) {
-            setDomain(getHostBaseUrlAsURL().getHost());
+    public URL getUrl() {
+        String validHost = toValidUrl(getHostBaseUrl());
+        URL u = toURL("http://undefined.com");
+        if(validHost!=null && getResource()!=null){
+            String fullUrl = validHost + getResource();
+            u = toURL(fullUrl);
         }
-        return getPropertyAsString(DOMAIN);
-    }
-
-    public void setProtocol(String value) {
-        if (value == null)
-            value = getHostBaseUrlAsURL().getProtocol();
-        setProperty(PROTOCOL, value);
-    }
-
-    public String getProtocol() {
-        if (getPropertyAsString(PROTOCOL) == null) {
-            setProtocol(getHostBaseUrlAsURL().getProtocol());
-        }
-        return getPropertyAsString(PROTOCOL);
-    }
-
-    public void setPort(int value) {
-        if (value == -1)
-            value = getHostBaseUrlAsURL().getPort();
-        setProperty(PORT, Integer.toString(value));
-    }
-
-    public int getPort() {
-        if (getPropertyAsString(PORT) == null) {
-            setPort(getHostBaseUrlAsURL().getPort());
-        }
-        return getPropertyAsInt(PORT);
+        return u;
     }
 
     public String toString() {
         return "Base host url: " + getHostBaseUrl() + ", resource: " + getResource() + ", Method: " + getMethod();
+    }
+
+    private String toValidUrl(String u) {
+        try {
+            URL url = new URL(u);
+            String urlStr = url.toString();
+            if(urlStr.endsWith("/")){
+                url = toURL(urlStr.substring(0, urlStr.length() - 1));
+                urlStr = url.toString();
+            }
+            return urlStr;
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
+    private URL toURL(String u) {
+        try {
+            return new URL(u);
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     private void overrideHeaders(HttpMethodBase httpMethod) {
@@ -176,7 +171,7 @@ public class RestSampler extends HTTPSampler2 {
 
             int statusCode = -1;
             try {
-                client.executeMethod(httpMethod);
+                statusCode = client.executeMethod(httpMethod);
             } catch (RuntimeException e) {
                 e.printStackTrace();
                 throw e;
