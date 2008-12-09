@@ -35,7 +35,7 @@
 	<classpathentry kind="var" path="JMETER_HOME/lib/xml-apis-2_9_1.jar"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/xpp3_min-1.1.4c.jar"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/xstream-1.3.jar"/>
-	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_components.jar"/>
+	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_components.jar" sourcepath="/JMETER_HOME/src/components"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_core.jar" sourcepath="/JMETER_HOME/src/core"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_ftp.jar"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_functions.jar"/>
