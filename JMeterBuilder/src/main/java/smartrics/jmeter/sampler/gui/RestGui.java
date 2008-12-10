@@ -106,8 +106,6 @@ public class RestGui extends AbstractSamplerGui {
         automaticRedirect = new JCheckBox(JMeterUtils.getResString("follow_redirects"));
         httpMethods = new JLabeledChoice("Method", new String[] { "GET", "POST", "PUT", "DELETE" });
         httpMethods.addChangeListener(new ChangeListener() {
-
-            @Override
             public void stateChanged(ChangeEvent e) {
                 JLabeledChoice c = (JLabeledChoice) e.getSource();
                 String text = c.getText();
