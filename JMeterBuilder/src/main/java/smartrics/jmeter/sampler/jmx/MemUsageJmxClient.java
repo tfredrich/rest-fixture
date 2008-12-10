@@ -14,21 +14,19 @@ import javax.management.remote.JMXServiceURL;
 public class MemUsageJmxClient {
 
     public static class MemoryData {
-        private long heap;
-        private long noHeap;
-        public long getHeapData() {
-            return heap;
+        private MemoryMXBean mBean;
+
+        private MemoryData(MemoryMXBean mBean) {
+            this.mBean = mBean;
         }
 
-        public long getNoHeapData() {
-            return noHeap;
+        public long getUsedHeap() {
+            return mBean.getHeapMemoryUsage().getUsed();
         }
 
-        public MemoryData(long h, long noh) {
-            this.heap = h;
-            this.noHeap = noh;
+        public long getUsedNonHeap() {
+            return mBean.getNonHeapMemoryUsage().getUsed();
         }
-
     }
 
     private JMXServiceURL url;
@@ -55,7 +53,7 @@ public class MemUsageJmxClient {
     public MemoryData getData() {
         if (memoryMbean == null)
             createMemoryMxBean();
-        MemoryData data = new MemoryData(memoryMbean.getHeapMemoryUsage().getUsed(), memoryMbean.getNonHeapMemoryUsage().getUsed());
+        MemoryData data = new MemoryData(memoryMbean);
         return data;
     }
 
