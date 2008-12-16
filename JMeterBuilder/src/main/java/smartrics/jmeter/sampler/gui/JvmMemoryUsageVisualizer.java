@@ -2,7 +2,10 @@ package smartrics.jmeter.sampler.gui;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import org.apache.jmeter.samplers.SampleResult;
@@ -16,11 +19,20 @@ import smartrics.jmeter.sampler.jmx.MemUsageJmxClient.MemoryData;
 @SuppressWarnings("serial")
 public class JvmMemoryUsageVisualizer extends GraphVisualizer {
 
+    private long startdate = -1;
     private JmxPanel jmxPanel;
+    private int count = 0;
+    private Map<Long, Long> model = new HashMap<Long, Long>();
 
     public JvmMemoryUsageVisualizer() {
         super();
+        setModel();
         fixComponents(this);
+    }
+
+    private void setModel() {
+        // collector = new JmxDataResultCollector();
+        // collector.setListener(this);
     }
 
     protected Container makeTitlePanel() {
@@ -35,20 +47,39 @@ public class JvmMemoryUsageVisualizer extends GraphVisualizer {
         return "JMX Memory Usage";
     }
 
+    public TestElement createTestElement() {
+        if (collector == null) {
+            setModel();
+        }
+        return super.createTestElement();
+    }
+
     public void add(SampleResult res) {
+        SampleResult newRes = res;
+        // if (isEnabled()) {
+        if (startdate == -1)
+            startdate = System.currentTimeMillis();
         MemUsageJmxClient c = new MemUsageJmxClient();
         c.setUrl(jmxPanel.getUrl());
         MemoryData d = c.getData();
-        SampleResult newRes = new SampleResult();
+        newRes = new SampleResult();
         newRes.setSampleLabel("lbl");
         long mem = byte2Kbyte(d.getUsedNonHeap());
         if (JmxPanel.HEAP_MEM.equals(jmxPanel.getUsedMemoryType())) {
             mem = byte2Kbyte(d.getUsedHeap());
         }
         newRes.setSamplerData(Long.toString(mem));
+        newRes.setSampleCount(count++);
         newRes.setStampAndTime(0, mem);
         newRes.setSuccessful(true);
+        model.put(System.currentTimeMillis() - startdate, mem);
+        // }
         super.add(newRes);
+    }
+
+    @Override
+    public JComponent getPrintableComponent() {
+        return jmxPanel;
     }
 
     private long byte2Kbyte(long n) {
@@ -56,6 +87,9 @@ public class JvmMemoryUsageVisualizer extends GraphVisualizer {
     }
 
     public void configure(TestElement el) {
+        if (collector == null) {
+            setModel();
+        }
         super.configure(el);
         jmxPanel.setUrl(el.getPropertyAsString(JmxPanel.JMX_URL));
         jmxPanel.setUsedMemoryType(el.getPropertyAsString(JmxPanel.JMX_USED_MEM_TYPE));
