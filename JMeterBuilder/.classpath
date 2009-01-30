@@ -49,8 +49,7 @@
 	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_monitors.jar"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_report.jar"/>
 	<classpathentry kind="var" path="JMETER_HOME/lib/ext/ApacheJMeter_tcp.jar"/>
-	<classpathentry kind="var" path="JFREECHART_HOME/lib/iText-2.1.3.jar"/>
-	<classpathentry kind="var" path="JFREECHART_HOME/lib/jcommon-1.0.14.jar"/>
-	<classpathentry kind="var" path="JFREECHART_HOME/lib/jfreechart-1.0.11.jar"/>
+	<classpathentry kind="var" path="JMETER_HOME/extras/ant-jmeter-1.0.9.jar"/>
+	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
