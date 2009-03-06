@@ -1,7 +1,8 @@
-<project name="JMeterBuilder" default="package" basedir=".">
+<project name="JMeterRestSampler" default="package" basedir=".">
 	<record name="${basedir}/${ant.project.name}.build.log" loglevel="verbose" />
+	<property file="properties/${user.name}.properties" />
+	<property file="build.properties" />
     <property name="src" value="${basedir}/src/main/java" />
-    <property name="jmeter.home" value="/opt/java/jakarta-jmeter-2.3.2" />
     <property name="lib" value="${basedir}/lib" />
     <property name="build" value="${basedir}/build" />
 

@@ -1,3 +1,22 @@
+/*  Copyright 2009 Fabrizio Cannizzo
+ *
+ *  This file is part of JMeterRestSampler.
+ *
+ *  JMeterRestSampler (http://code.google.com/p/rest-fixture/) is free software:
+ *  you can redistribute it and/or modify it under the terms of the
+ *  GNU Lesser General Public License as published by the Free Software Foundation,
+ *  either version 3 of the License, or (at your option) any later version.
+ *
+ *  JMeterRestSampler is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JMeterRestSampler.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  If you want to contact the author please see http://smartrics.blogspot.com
+ */
 package smartrics.jmeter.sampler.gui;
 
 import java.awt.BorderLayout;
@@ -9,8 +28,6 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.apache.jmeter.functions.InvalidVariableException;
-import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
@@ -22,6 +39,11 @@ import org.apache.jorphan.gui.JLabeledTextField;
 
 import smartrics.jmeter.sampler.RestSampler;
 
+/**
+ * Frontend to the REST sampler.
+ * 
+ * It only eposes GET/POST/PUT/DELETE.
+ */
 public class RestGui extends AbstractSamplerGui {
     private static final long serialVersionUID = -5576774730632101012L;
     private JCheckBox useKeepAlive;
@@ -78,11 +100,6 @@ public class RestGui extends AbstractSamplerGui {
         this.configureTestElement(s);
         if (s instanceof RestSampler) {
             RestSampler sampler = (RestSampler) s;
-            try {
-                GuiPackage.getInstance().getReplacer().replaceValues(sampler);
-            } catch (InvalidVariableException e) {
-                e.printStackTrace();
-            }
             sampler.setRequestBody(body.getText());
             sampler.setMethod(httpMethods.getText());
             sampler.setUseKeepAlive(useKeepAlive.isSelected());

@@ -1,3 +1,22 @@
+/*  Copyright 2009 Fabrizio Cannizzo
+ *
+ *  This file is part of JMeterRestSampler.
+ *
+ *  JMeterRestSampler (http://code.google.com/p/rest-fixture/) is free software:
+ *  you can redistribute it and/or modify it under the terms of the
+ *  GNU Lesser General Public License as published by the Free Software Foundation,
+ *  either version 3 of the License, or (at your option) any later version.
+ *
+ *  JMeterRestSampler is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JMeterRestSampler.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  If you want to contact the author please see http://smartrics.blogspot.com
+ */
 package smartrics.jmeter.sampler.gui;
 
 import java.awt.BorderLayout;
@@ -11,6 +30,9 @@ import org.apache.jmeter.testelement.TestElement;
 
 import smartrics.jmeter.sampler.JmxSampler;
 
+/**
+ * Frontend for the JmxSampler
+ */
 public class JmxGui extends AbstractSamplerGui {
     private static final long serialVersionUID = -5576774730632101012L;
     private JmxPanel panel;
@@ -45,6 +67,9 @@ public class JmxGui extends AbstractSamplerGui {
     private void resetJmxPanel() {
         panel.setUrl("service:jmx:rmi:///jndi/rmi://<host>:<port>/jmxrmi");
         panel.setUsedMemoryType(JmxSampler.HEAP_MEM);
+        panel.setSaveGraph(false);
+        panel.setSaveFileTo(null);
+        panel.setSamplingFrequency(5);
     }
 
     /**
@@ -61,8 +86,11 @@ public class JmxGui extends AbstractSamplerGui {
             } catch (InvalidVariableException e) {
                 e.printStackTrace();
             }
+            sampler.setSampleFrequency(panel.getSamplingFrequency());
             sampler.setJmxUri(panel.getUrl());
             sampler.setJmxMemType(panel.getUsedMemoryType());
+            sampler.setSaveGraph(panel.isSaveGraph());
+            sampler.setGraphFileName(panel.getSaveFileTo());
         }
     }
 
@@ -90,10 +118,20 @@ public class JmxGui extends AbstractSamplerGui {
             JmxSampler sampler = (JmxSampler) el;
             panel.setUrl(sampler.getJmxUri());
             panel.setUsedMemoryType(sampler.getJmxMemType());
+            int sf = sampler.getSampleFrequency();
+            panel.setSamplingFrequency(sf);
+            String fname = sampler.getGraphFileName();
+            if (fname != null && !"".equals(fname)) {
+                panel.setSaveGraph(true);
+                panel.setSaveFileTo(fname);
+            } else {
+                panel.setSaveFileTo(null);
+            }
         }
     }
 
     public Dimension getPreferredSize() {
         return getMinimumSize();
     }
+
 }

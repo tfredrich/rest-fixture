@@ -1,3 +1,22 @@
+/*  Copyright 2009 Fabrizio Cannizzo
+ *
+ *  This file is part of JMeterRestSampler.
+ *
+ *  JMeterRestSampler (http://code.google.com/p/rest-fixture/) is free software:
+ *  you can redistribute it and/or modify it under the terms of the
+ *  GNU Lesser General Public License as published by the Free Software Foundation,
+ *  either version 3 of the License, or (at your option) any later version.
+ *
+ *  JMeterRestSampler is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JMeterRestSampler.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  If you want to contact the author please see http://smartrics.blogspot.com
+ */
 package smartrics.jmeter.sampler;
 
 import java.io.IOException;
@@ -25,6 +44,9 @@ import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.apache.log.Logger;
 
+/**
+ * Models a REST request for sampling purposes.
+ */
 public class RestSampler extends HTTPSampler2 {
     private static final long serialVersionUID = -5877623539165274730L;
 
@@ -85,10 +107,15 @@ public class RestSampler extends HTTPSampler2 {
         return getPropertyAsString(BASE_HOST);
     }
 
+    /**
+     * Returns the full resource URI concatenating the base url and the resource
+     * id. If either components are missing or invalid, it returns a canned
+     * value of <code>"http://undefined.com"</code>
+     */
     public URL getUrl() {
         String validHost = toValidUrl(getHostBaseUrl());
         URL u = toURL("http://undefined.com");
-        if(validHost!=null && getResource()!=null){
+        if (validHost != null && getResource() != null) {
             String fullUrl = validHost + getResource();
             u = toURL(fullUrl);
         }
@@ -103,7 +130,7 @@ public class RestSampler extends HTTPSampler2 {
         try {
             URL url = new URL(u);
             String urlStr = url.toString();
-            if(urlStr.endsWith("/")){
+            if (urlStr.endsWith("/")) {
                 url = toURL(urlStr.substring(0, urlStr.length() - 1));
                 urlStr = url.toString();
             }
@@ -138,6 +165,16 @@ public class RestSampler extends HTTPSampler2 {
         }
     }
 
+    /**
+     * Method invoked by JMeter when a sample needs to happen. It's actually an
+     * indirect call from the main sampler interface. it's resolved in the base
+     * class.
+     * 
+     * This is a copy and paste from the HTTPSampler2 - quick and dirty hack as
+     * that class is not very extensible. The reason to extend and slightly
+     * modify is that I needed to get the body content from a text field in the
+     * GUI rather than a file.
+     */
     protected HTTPSampleResult sample(URL url, String method, boolean areFollowingRedirect, int frameDepth) {
 
         String urlStr = url.toString();
@@ -152,6 +189,7 @@ public class RestSampler extends HTTPSampler2 {
 
         res.setSampleLabel(urlStr); // May be replaced later
         res.setHTTPMethod(method);
+        res.setURL(url);
         res.sampleStart(); // Count the retries as well in the time
         HttpClient client = null;
         InputStream instream = null;
@@ -173,7 +211,7 @@ public class RestSampler extends HTTPSampler2 {
             try {
                 statusCode = client.executeMethod(httpMethod);
             } catch (RuntimeException e) {
-                e.printStackTrace();
+                log.error("Exception when executing '" + httpMethod + "'", e);
                 throw e;
             }
 
@@ -286,21 +324,14 @@ public class RestSampler extends HTTPSampler2 {
     }
 
     /**
-     * Set up the PUT/POST data
+     * Set up the PUT/POST data.
+     * 
+     * <b>TODO</b>: should parse request headers and pass the Content-Type. For
+     * now it will always assume text/xml
      */
     private String sendData(EntityEnclosingMethod method) throws IOException {
         method.setRequestEntity(new MyRequestEntity(getRequestBody()));
         return getRequestBody();
-    }
-
-    private URL getHostBaseUrlAsURL() {
-        try {
-            URL u = new URL(getHostBaseUrl());
-            return u;
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid data to build url: " + getHostBaseUrl(), e);
-        }
-
     }
 
 }
