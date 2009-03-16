@@ -20,12 +20,13 @@
  */
 package smartrics.rest.client;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethodBase;
-
 import static org.junit.Assert.assertTrue;
 
-public class MockHttpMethod extends HttpMethodBase{
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+
+public class MockHttpMethod extends EntityEnclosingMethod {
 
 	private String name;
 	private int statusCode;
@@ -68,5 +69,8 @@ public class MockHttpMethod extends HttpMethodBase{
 	public void verifyConnectionReleased(){
 		assertTrue("connection not released on mock http method", connectionReleased);
 	}
-
+	
+	public boolean isMultipartRequest() {
+	    return getRequestEntity().getClass().equals(MultipartRequestEntity.class);
+	}
 }

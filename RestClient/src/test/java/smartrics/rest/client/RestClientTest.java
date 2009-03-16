@@ -22,7 +22,9 @@ package smartrics.rest.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -185,4 +187,27 @@ public class RestClientTest {
 		};
 		client.createHttpClientMethod(validRestRequest);
 	}
+	
+	@Test
+	public void shouldCreateMultipartEntityIfRestRequestHasNonNullMultipartFileName() throws Exception {
+	    String filename = "multiparttest";
+	    File f = File.createTempFile(filename, null);
+	    f.deleteOnExit();
+	    
+	    mockHttpMethod = new MockHttpMethod("mock");
+	    validRestRequest.addHeader("a", "header");
+	    validRestRequest.setMultipartFileName(f.getAbsolutePath());
+	    RestClientImpl client = new RestClientImpl(new MockHttpClient(200));
+	    client.configureHttpMethod(mockHttpMethod, "localhost", validRestRequest);
+	    assertTrue(mockHttpMethod.isMultipartRequest());
+    }
+
+	@Test(expected=IllegalArgumentException.class)
+    public void shouldThrowExceptionIfMultipartFileNameDoesNotExist() throws Exception {
+        mockHttpMethod = new MockHttpMethod("mock");
+        validRestRequest.addHeader("a", "header");
+        validRestRequest.setMultipartFileName("multiparttest");
+        RestClientImpl client = new RestClientImpl(new MockHttpClient(200));
+        client.configureHttpMethod(mockHttpMethod, "localhost", validRestRequest);
+    }
 }

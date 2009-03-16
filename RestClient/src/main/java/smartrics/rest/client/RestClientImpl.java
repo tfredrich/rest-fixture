@@ -20,6 +20,8 @@
  */
 package smartrics.rest.client;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -33,6 +35,9 @@ import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,205 +46,223 @@ import org.apache.commons.logging.LogFactory;
  */
 public class RestClientImpl implements RestClient {
 
-	private static Log LOG = LogFactory.getLog(RestClientImpl.class);
+    private static Log LOG = LogFactory.getLog(RestClientImpl.class);
 
-	private final HttpClient client;
+    private final HttpClient client;
 
-	private String baseUrl;
+    private String baseUrl;
 
-	/**
-	 * Constructor allowing the injection of an {@code org.apache.commons.httpclient.HttpClient}.
-	 *
-	 * @param client
-	 *            the client
-	 * @see org.apache.commons.httpclient.HttpClient
-	 */
-	public RestClientImpl(HttpClient client) {
-		if (client == null)
-			throw new IllegalArgumentException("Null HttpClient instance");
-		this.client = client;
-	}
+    /**
+     * Constructor allowing the injection of an {@code
+     * org.apache.commons.httpclient.HttpClient}.
+     * 
+     * @param client
+     *            the client
+     * @see org.apache.commons.httpclient.HttpClient
+     */
+    public RestClientImpl(HttpClient client) {
+        if (client == null)
+            throw new IllegalArgumentException("Null HttpClient instance");
+        this.client = client;
+    }
 
-	/**
-	 * @see {@link smartrics.rest.client.RestClient#setBaseUrl(java.lang.String)}
-	 */
-	public void setBaseUrl(String bUrl) {
-		this.baseUrl = bUrl;
-	}
+    /**
+     * @see {@link smartrics.rest.client.RestClient#setBaseUrl(java.lang.String)}
+     */
+    public void setBaseUrl(String bUrl) {
+        this.baseUrl = bUrl;
+    }
 
-	/**
-	 * @see {@link smartrics.rest.client.RestClient#getBaseUrl()}
-	 */
-	public String getBaseUrl() {
-		return baseUrl;
-	}
+    /**
+     * @see {@link smartrics.rest.client.RestClient#getBaseUrl()}
+     */
+    public String getBaseUrl() {
+        return baseUrl;
+    }
 
-	/**
-	 * Returns the Http client instance used by this implementation.
-	 *
-	 * @return the instance of HttpClient
-	 * @see org.apache.commons.httpclient.HttpClient
-	 * @see {@link smartrics.rest.client.RestClientImpl(org.apache.commons.httpclient.HttpClient)}
-	 */
-	public HttpClient getClient() {
-		return client;
-	}
+    /**
+     * Returns the Http client instance used by this implementation.
+     * 
+     * @return the instance of HttpClient
+     * @see org.apache.commons.httpclient.HttpClient
+     * @see {@link
+     *      smartrics.rest.client.RestClientImpl(org.apache.commons.httpclient.
+     *      HttpClient)}
+     */
+    public HttpClient getClient() {
+        return client;
+    }
 
-	/**
-	 * @see {@link smartrics.rest.client.RestClient#execute(smartrics.rest.client.RestRequest)}
-	 */
-	public RestResponse execute(RestRequest request) {
-		return execute(getBaseUrl(), request);
-	}
+    /**
+     * @see {@link smartrics.rest.client.RestClient#execute(smartrics.rest.client.RestRequest)}
+     */
+    public RestResponse execute(RestRequest request) {
+        return execute(getBaseUrl(), request);
+    }
 
-	/**
-	 * @see {@link smartrics.rest.client.RestClient#execute(java.lang.String, smartrics.rest.client.RestRequest)}
-	 */
-	public RestResponse execute(String hostAddr, final RestRequest request) {
-		if (request == null || !request.isValid())
-			throw new IllegalArgumentException("Invalid request " + request);
-		if (request.getTransactionId() == null)
-			request.setTransactionId(Long.valueOf(System.currentTimeMillis()));
-		LOG.debug(request);
-		HttpMethod m = createHttpClientMethod(request);
-		configureHttpMethod(m, hostAddr, request);
-		RestResponse resp = new RestResponse();
-		resp.setTransactionId(request.getTransactionId());
-		resp.setResource(request.getResource());
-		try {
-			client.executeMethod(m);
-			for (Header h : m.getResponseHeaders()) {
-				resp.addHeader(h.getName(), h.getValue());
-			}
-			resp.setStatusCode(m.getStatusCode());
-			resp.setStatusText(m.getStatusText());
-			resp.setBody(m.getResponseBodyAsString());
-		} catch (HttpException e) {
-			String message = "Http call failed for protocol failure";
-			LOG.warn(message);
-			throw new IllegalStateException(message, e);
-		} catch (IOException e) {
-			String message = "Http call failed for IO failure";
-			LOG.warn(message);
-			throw new IllegalStateException(message, e);
-		} finally {
-			m.releaseConnection();
-		}
-		LOG.debug(resp);
-		return resp;
-	}
+    /**
+     * @see {@link smartrics.rest.client.RestClient#execute(java.lang.String, smartrics.rest.client.RestRequest)}
+     */
+    public RestResponse execute(String hostAddr, final RestRequest request) {
+        if (request == null || !request.isValid())
+            throw new IllegalArgumentException("Invalid request " + request);
+        if (request.getTransactionId() == null)
+            request.setTransactionId(Long.valueOf(System.currentTimeMillis()));
+        LOG.debug(request);
+        HttpMethod m = createHttpClientMethod(request);
+        configureHttpMethod(m, hostAddr, request);
+        RestResponse resp = new RestResponse();
+        resp.setTransactionId(request.getTransactionId());
+        resp.setResource(request.getResource());
+        try {
+            client.executeMethod(m);
+            for (Header h : m.getResponseHeaders()) {
+                resp.addHeader(h.getName(), h.getValue());
+            }
+            resp.setStatusCode(m.getStatusCode());
+            resp.setStatusText(m.getStatusText());
+            resp.setBody(m.getResponseBodyAsString());
+        } catch (HttpException e) {
+            String message = "Http call failed for protocol failure";
+            LOG.warn(message);
+            throw new IllegalStateException(message, e);
+        } catch (IOException e) {
+            String message = "Http call failed for IO failure";
+            LOG.warn(message);
+            throw new IllegalStateException(message, e);
+        } finally {
+            m.releaseConnection();
+        }
+        LOG.debug(resp);
+        return resp;
+    }
 
-	/**
-	 * Configures the instance of HttpMethod with the data in the request and the host address.
-	 * @param m the method class to configure
-	 * @param hostAddr the host address
-	 * @param request the rest request
-	 */
-	protected void configureHttpMethod(HttpMethod m, String hostAddr, final RestRequest request) {
-		addHeaders(m, request);
-		setUri(m, hostAddr, request);
-		m.setQueryString(request.getQuery());
-		if (m instanceof EntityEnclosingMethod) {
-			final String data = request.getBody();
-			RequestEntity requestEntity = new RequestEntity() {
-				public boolean isRepeatable() {
-					return true;
-				}
+    /**
+     * Configures the instance of HttpMethod with the data in the request and
+     * the host address.
+     * 
+     * @param m
+     *            the method class to configure
+     * @param hostAddr
+     *            the host address
+     * @param request
+     *            the rest request
+     */
+    protected void configureHttpMethod(HttpMethod m, String hostAddr, final RestRequest request) {
+        addHeaders(m, request);
+        setUri(m, hostAddr, request);
+        m.setQueryString(request.getQuery());
+        if (m instanceof EntityEnclosingMethod) {
+            RequestEntity requestEntity = null;
+            String fileName = request.getMultipartFileName();
+            if (fileName != null) {
+                File file = new File(fileName);
+                try {
+                    requestEntity = new MultipartRequestEntity(new Part[] { new FilePart(file.getName(), file) }, ((EntityEnclosingMethod)m).getParams());
+                } catch (FileNotFoundException e) {
+                    LOG.error(String.format("File %s not found", fileName), e);
+                    throw new IllegalArgumentException(e);
+                }
+            } else {
+                requestEntity = new RequestEntity() {
+                    public boolean isRepeatable() {
+                        return true;
+                    }
+    
+                    public void writeRequest(OutputStream out) throws IOException {
+                        PrintWriter printer = new PrintWriter(out);
+                        printer.print(request.getBody());
+                        printer.flush();
+                    }
+    
+                    public long getContentLength() {
+                        return request.getBody().getBytes().length;
+                    }
+    
+                    public String getContentType() {
+                        List<smartrics.rest.client.RestData.Header> values = request.getHeader("Content-Type");
+                        String v = "text/xml";
+                        if (values.size() != 0)
+                            v = values.get(0).getValue();
+                        return v;
+                    }
+                };
+            }
+            ((EntityEnclosingMethod) m).setRequestEntity(requestEntity);
+        }
+    }
 
-				public void writeRequest(OutputStream out) throws IOException {
-					PrintWriter printer = new PrintWriter(out);
-					printer.print(data);
-					printer.flush();
-				}
+    public String getContentType(RestRequest request) {
+        List<smartrics.rest.client.RestData.Header> values = request.getHeader("Content-Type");
+        String v = "text/xml";
+        if (values.size() != 0)
+            v = values.get(0).getValue();
+        return v;
+    }
 
-				public long getContentLength() {
-					return data.getBytes().length;
-				}
+    private void setUri(HttpMethod m, String hostAddr, RestRequest request) {
+        String host = hostAddr == null ? client.getHostConfiguration().getHost() : hostAddr;
+        if (host == null)
+            throw new IllegalStateException("hostAddress is null: please config httpClient host configuration or "
+                    + "pass a valid host address or config a baseUrl on this client");
+        String uriString = host + request.getResource();
+        try {
+            m.setURI(new URI(uriString, false));
+        } catch (URIException e) {
+            throw new IllegalStateException("Problem when building URI: " + uriString, e);
+        } catch (NullPointerException e) {
+            throw new IllegalStateException("Building URI with null string", e);
+        }
+    }
 
-				public String getContentType() {
-				 List<smartrics.rest.client.RestData.Header> values = request
-							.getHeader("Content-Type");
-					String v = "text/xml";
-					if (values.size() != 0)
-						v = values.get(0).getValue();
-					return v;
-				}
-			};
-			((EntityEnclosingMethod) m).setRequestEntity(requestEntity);
-		}
-	}
+    /**
+     * factory method that maps a string with a HTTP method name to an
+     * implementation class in Apache HttpClient. Currently the name is mapped
+     * to <code>org.apache.commons.httpclient.methods.%sMethod</code> where
+     * <code>%s</code> is the parameter mName.
+     * 
+     * @param mName
+     *            the method name
+     * @return the method class
+     */
+    protected String getMethodClassnameFromMethodName(String mName) {
+        return String.format("org.apache.commons.httpclient.methods.%sMethod", mName);
+    }
 
-	private void setUri(HttpMethod m, String hostAddr, RestRequest request) {
-		String host = hostAddr == null ? client.getHostConfiguration()
-				.getHost() : hostAddr;
-		if (host == null)
-			throw new IllegalStateException(
-					"hostAddress is null: please config httpClient host configuration or "
-							+ "pass a valid host address or config a baseUrl on this client");
-		String uriString = host + request.getResource();
-		try {
-			m.setURI(new URI(uriString, false));
-		} catch (URIException e) {
-			throw new IllegalStateException("Problem when building URI: "
-					+ uriString, e);
-		} catch (NullPointerException e) {
-			throw new IllegalStateException("Building URI with null string", e);
-		}
-	}
+    /**
+     * Utility method that creates an instance of {@code
+     * org.apache.commons.httpclient.HttpMethod}.
+     * 
+     * @param request
+     *            the rest request
+     * @return the instance of {@code org.apache.commons.httpclient.HttpMethod}
+     *         matching the method in RestRequest.
+     */
+    @SuppressWarnings("unchecked")
+    protected HttpMethod createHttpClientMethod(RestRequest request) {
+        String mName = request.getMethod().toString();
+        String className = getMethodClassnameFromMethodName(mName);
+        try {
+            Class<HttpMethod> clazz = (Class<HttpMethod>) Class.forName(className);
+            HttpMethod m = clazz.newInstance();
+            return m;
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(className + " not found: you may be using a too old or "
+                    + "too new version of HttpClient", e);
+        } catch (InstantiationException e) {
+            throw new IllegalStateException("An object of type " + className + " cannot be instantiated", e);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("The default ctor for type " + className + " cannot be invoked", e);
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("Exception when instantiating: " + className, e);
+        }
 
-	/**
-	 * factory method that maps a string with a HTTP method name to an
-	 * implementation class in Apache HttpClient.
-	 * Currently the name is mapped to 
-	 * <code>org.apache.commons.httpclient.methods.%sMethod</code>
-	 * where <code>%s</code> is the parameter mName.
-	 * 
-	 * @param mName the method name
-	 * @return the method class
-	 */
-	protected String getMethodClassnameFromMethodName(String mName) {
-		return String.format("org.apache.commons.httpclient.methods.%sMethod",
-				mName);
-	}
+    }
 
-	/**
-	 * Utility method that creates an instance of {@code org.apache.commons.httpclient.HttpMethod}.
-	 *
-	 * @param request
-	 *            the rest request
-	 * @return the instance of {@code org.apache.commons.httpclient.HttpMethod}
-	 *         matching the method in RestRequest.
-	 */
-	@SuppressWarnings("unchecked")
-	protected HttpMethod createHttpClientMethod(RestRequest request) {
-		String mName = request.getMethod().toString();
-		String className = getMethodClassnameFromMethodName(mName);
-		try {
-			Class<HttpMethod> clazz = (Class<HttpMethod>) Class
-					.forName(className);
-			HttpMethod m = clazz.newInstance();
-			return m;
-		} catch (ClassNotFoundException e) {
-			throw new IllegalStateException(className
-					+ " not found: you may be using a too old or "
-					+ "too new version of HttpClient", e);
-		} catch (InstantiationException e) {
-			throw new IllegalStateException("An object of type " + className
-					+ " cannot be instantiated", e);
-		} catch (IllegalAccessException e) {
-			throw new IllegalStateException("The default ctor for type "
-					+ className + " cannot be invoked", e);
-		} catch (RuntimeException e) {
-			throw new IllegalStateException("Exception when instantiating: "
-					+ className, e);
-		}
-
-	}
-
-	private void addHeaders(HttpMethod m, RestRequest request) {
-		for (RestData.Header h : request.getHeaders()) {
-			m.addRequestHeader(h.getName(), h.getValue());
-		}
-	}
+    private void addHeaders(HttpMethod m, RestRequest request) {
+        for (RestData.Header h : request.getHeaders()) {
+            m.addRequestHeader(h.getName(), h.getValue());
+        }
+    }
 
 }

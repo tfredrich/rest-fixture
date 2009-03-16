@@ -28,6 +28,7 @@ public class RestRequest extends RestData{
 	 * An http verb (those supported).
 	 */
 	public enum Method {Get, Post, Put, Delete};
+	private String multipartFileName;
 	private String query;
 	private Method method;
 
@@ -66,7 +67,24 @@ public class RestRequest extends RestData{
 		return this;
 	}
 
-	/**
+    /**
+     * @return the multipart file name for this request
+     */
+	public String getMultipartFileName() {
+        return multipartFileName;
+    }
+
+    /**
+     * Sets the multipart file name for this request.
+     * @param multipartFileName the multipart file name
+     * @return this request
+     */
+    public RestRequest setMultipartFileName(String multipartFileName) {
+        this.multipartFileName = multipartFileName;
+        return this;
+    }
+
+    /**
 	 * Checks validity of this request.
 	 *
 	 * In this implementation a request is valid if both the method and the resource Uri not null
