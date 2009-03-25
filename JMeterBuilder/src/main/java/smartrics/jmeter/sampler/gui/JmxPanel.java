@@ -23,11 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.jmeter.gui.util.HorizontalPanel;
@@ -46,9 +45,9 @@ public class JmxPanel extends VerticalPanel {
 
     private JTextField jmxUrl;
     private JComboBox usedMemoryType;
-    private JLabeledTextField fileName;
     private JLabeledTextField samplingFrequency;
-    private JCheckBox saveGraph;
+
+    private JFileChooser saveFileChooser;
 
     public JmxPanel() {
         setBorder(BorderFactory.createTitledBorder("JMX"));
@@ -65,50 +64,7 @@ public class JmxPanel extends VerticalPanel {
         jmxDataPanel.add(usedMemoryType);
         samplingFrequency = new JLabeledTextField("Sampling Frequency (sec)", 5);
         jmxDataPanel.add(samplingFrequency);
-        HorizontalPanel graphFilePanel = new HorizontalPanel();
-        saveGraph = new JCheckBox("Save graph");
-        graphFilePanel.add(saveGraph);
-        fileName = new JLabeledTextField("File", 40);
-        graphFilePanel.add(fileName);
-        fileName.addChangeListener(new ChangeListener() {
-
-            public void stateChanged(ChangeEvent e) {
-                String t = fileName.getText();
-                boolean reset = false;
-                if (t != null) {
-                    t = t.trim();
-                    reset = true;
-                }
-                if (!t.toLowerCase().endsWith(".png")) {
-                    t = t + ".png";
-                    reset = true;
-                }
-                if (reset) {
-                    fileName.setText(t);
-
-                }
-            }
-        });
         add(jmxDataPanel);
-        add(graphFilePanel);
-    }
-
-    public void setSaveGraph(boolean save) {
-        if (saveGraph != null) {
-            saveGraph.setSelected(save);
-        }
-    }
-
-    public boolean isSaveGraph() {
-        return saveGraph.isSelected();
-    }
-
-    public void setSaveFileTo(String fname) {
-        fileName.setText(fname);
-    }
-
-    public String getSaveFileTo() {
-        return fileName.getText();
     }
 
     public void setUsedMemoryType(String memType) {

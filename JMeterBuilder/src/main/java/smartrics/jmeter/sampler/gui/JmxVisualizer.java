@@ -25,7 +25,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 
@@ -36,6 +38,7 @@ import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
 import smartrics.jmeter.sampler.JmxSampleResult;
+import smartrics.jmeter.sampler.SaveGraphUtil;
 
 /**
  * Visualises the results of sampling a JMX server for memory.
@@ -44,7 +47,7 @@ import smartrics.jmeter.sampler.JmxSampleResult;
  * and display results from all JmxSampler set up to sample different servers.
  */
 @SuppressWarnings("serial")
-public class JmxVisualizer extends AbstractVisualizer {
+public class JmxVisualizer extends AbstractVisualizer implements SaveGraphListener {
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     private VerticalPanel graphsPanel;
@@ -56,6 +59,16 @@ public class JmxVisualizer extends AbstractVisualizer {
         VerticalPanel groupPanel = new VerticalPanel();
         Container titlePanel = makeTitlePanel();
         groupPanel.add(titlePanel);
+        // redo a filepanel for savegraph
+        // - forces png
+        // - files only
+        // - add save button below
+        // - this will listen to save file actions
+        // - displays file chooser if file not chosen
+        // - if file added by hand, must work
+        SaveChartFilePanel saveGraph = new SaveChartFilePanel("Save Graph", "PNG [*.png]");
+        saveGraph.addSaveGraphPressedListener(this);
+        groupPanel.add(saveGraph);
         add(groupPanel, BorderLayout.NORTH);
         graphsPanel = new VerticalPanel();
         add(graphsPanel, BorderLayout.CENTER);
@@ -97,9 +110,6 @@ public class JmxVisualizer extends AbstractVisualizer {
             graph.setXAxisScalingFactor(1000);
             graph.putRawData(result.getStartTime(), result.getValue());
             renderChart(uri, graphPanel);
-            if (result.isSaveGraph()) {
-                graph.saveGraph(result.getGraphFilename());
-            }
         }
     }
 
@@ -113,8 +123,22 @@ public class JmxVisualizer extends AbstractVisualizer {
         repaint();
     }
 
+    public void saveGraphPressed(String filename) {
+        Iterator<Entry<String, JmxGraphPanel>> it = graphTable.entrySet().iterator();
+        int i = 0;
+        while (it.hasNext()) {
+            JmxGraphPanel v = it.next().getValue();
+            String id = Integer.toString(i);
+            if (graphTable.size() == 1) {
+                id = "";
+            }
+            SaveGraphUtil.saveGraph(filename, id, v.getGraph().getChart());
+            i++;
+        }
+    }
+
     public void clearData() {
-        // TODO Auto-generated method stub
 
     }
+
 }

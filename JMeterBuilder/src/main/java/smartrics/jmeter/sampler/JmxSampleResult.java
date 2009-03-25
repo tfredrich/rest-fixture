@@ -35,27 +35,9 @@ public class JmxSampleResult extends SampleResult {
     private String memType;
     private long value;
     private String jmxUri;
-    private String graphFilename;
-    private boolean saveGraph;
 
     public String getMemType() {
         return memType;
-    }
-
-    public String getGraphFilename() {
-        return graphFilename;
-    }
-
-    public void setGraphFilename(String graphFilename) {
-        this.graphFilename = graphFilename;
-    }
-
-    public void setSaveGraph(boolean b) {
-        saveGraph = b;
-    }
-
-    public boolean isSaveGraph() {
-        return saveGraph;
     }
 
     public void setMemType(String memType) {

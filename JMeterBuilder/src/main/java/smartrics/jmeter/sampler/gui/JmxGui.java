@@ -67,8 +67,6 @@ public class JmxGui extends AbstractSamplerGui {
     private void resetJmxPanel() {
         panel.setUrl("service:jmx:rmi:///jndi/rmi://<host>:<port>/jmxrmi");
         panel.setUsedMemoryType(JmxSampler.HEAP_MEM);
-        panel.setSaveGraph(false);
-        panel.setSaveFileTo(null);
         panel.setSamplingFrequency(5);
     }
 
@@ -89,8 +87,6 @@ public class JmxGui extends AbstractSamplerGui {
             sampler.setSampleFrequency(panel.getSamplingFrequency());
             sampler.setJmxUri(panel.getUrl());
             sampler.setJmxMemType(panel.getUsedMemoryType());
-            sampler.setSaveGraph(panel.isSaveGraph());
-            sampler.setGraphFileName(panel.getSaveFileTo());
         }
     }
 
@@ -120,13 +116,6 @@ public class JmxGui extends AbstractSamplerGui {
             panel.setUsedMemoryType(sampler.getJmxMemType());
             int sf = sampler.getSampleFrequency();
             panel.setSamplingFrequency(sf);
-            String fname = sampler.getGraphFileName();
-            if (fname != null && !"".equals(fname)) {
-                panel.setSaveGraph(true);
-                panel.setSaveFileTo(fname);
-            } else {
-                panel.setSaveFileTo(null);
-            }
         }
     }
 

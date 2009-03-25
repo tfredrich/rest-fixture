@@ -30,6 +30,7 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.util.JMeterUtils;
 
 import smartrics.jmeter.sampler.JmxSampleResult;
+import smartrics.jmeter.sampler.SaveGraphUtil;
 import smartrics.jmeter.sampler.gui.ChartWrapper;
 
 public class ChartGenerator extends DataExtractor {
@@ -77,7 +78,7 @@ public class ChartGenerator extends DataExtractor {
                 gfname = addCounterToFilename(cnt, gfname);
                 cnt++;
             }
-            chart.saveGraph(gfname);
+            SaveGraphUtil.saveGraph(gfname, chart.getChart());
         }
     }
 
@@ -113,7 +114,10 @@ public class ChartGenerator extends DataExtractor {
 
     public void handle(HTTPSampleResult res) {
         URL url = res.getURL();
-        String uri = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
+        String uri = "host";
+        // TODO: find out why the URL is not saved in the HTTPSampleResult
+        if (url != null)
+            uri = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
         ChartWrapper timeChart = perfCharts.get(uri);
         if (timeChart == null) {
             String[] label = new String[] { "Time", "Average" };
@@ -128,7 +132,7 @@ public class ChartGenerator extends DataExtractor {
     public static void main(String[] args) {
         JMeterUtils.setJMeterHome("/opt/java/jakarta-jmeter-2.3.2");
         JMeterUtils.loadJMeterProperties("/opt/java/jakarta-jmeter-2.3.2/bin/jmeter.properties");
-        File f = new File("/home/fabrizio/Projects/RestFixture/trunk/JMeterBuilder/src/main/java/data.jtl");
+        File f = new File("/home/fabrizio/Projects/RestFixture/workspace/RobustnessBuild/artefacts/Robustness.jtl");
         File jmxFile = new File("/home/fabrizio/Desktop/jmxGraph.png");
         File perfFile = new File("/home/fabrizio/Desktop/timeGraph.png");
         new ChartGenerator(f, jmxFile, perfFile).generate();

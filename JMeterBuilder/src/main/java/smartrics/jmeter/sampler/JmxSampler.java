@@ -51,10 +51,6 @@ public class JmxSampler extends AbstractSampler {
 
     public static final String JMX_MEM_TYPE = "JmxSampler.jmx_mem_type";
 
-    public static final String JMX_GRAPH_FILENAME = "JmxSampler.jmx_graph_filename";
-
-    public static final String JMX_SAVE_GRAPH = "JmxSampler.jmx_save_graph";
-
     public static final String JMX_SAMPLE_FREQUENCY = "JmxSampler.jmx_sample_frequency";
 
     public static final String JMX_LAST_SAMPLE_TS = "JmxSampler.jmx_last_sample_ts";
@@ -68,22 +64,6 @@ public class JmxSampler extends AbstractSampler {
 
     public void setSampleFrequency(int data) {
         setProperty(JMX_SAMPLE_FREQUENCY, Integer.toString(data));
-    }
-
-    public String getGraphFileName() {
-        return getPropertyAsString(JMX_GRAPH_FILENAME);
-    }
-
-    public void setGraphFileName(String data) {
-        setProperty(JMX_GRAPH_FILENAME, data);
-    }
-
-    public boolean isSaveGraph() {
-        return getPropertyAsBoolean(JMX_SAVE_GRAPH);
-    }
-
-    public void setSaveGraph(boolean data) {
-        setProperty(JMX_SAVE_GRAPH, data);
     }
 
     public void setLastSampleTs(String uri, long data) {
@@ -152,8 +132,6 @@ public class JmxSampler extends AbstractSampler {
         // obviously it's always successful as we're capturing data for report
         // purposes
         newRes.setSuccessful(true);
-        newRes.setGraphFilename(getGraphFileName());
-        newRes.setSaveGraph(isSaveGraph());
         return newRes;
     }
 

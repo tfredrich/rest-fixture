@@ -25,22 +25,21 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.apache.jmeter.util.JMeterUtils;
 import org.apache.soap.providers.com.Log;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.programmerplanet.ant.taskdefs.jmeter.JMeterTask;
 
 public class JMeterTaskExt extends JMeterTask {
 
+    private String succecssThresholdPerc;
 
-    private String failThreshold;
-
-    public void setFailThreshold(String t) {
-        this.failThreshold = t;
+    public void setSuccecssThresholdPerc(String t) {
+        this.succecssThresholdPerc = t;
     }
 
-    public String getFailThreshold() {
-        return this.failThreshold;
+    public String getSuccecssThresholdPerc() {
+        return this.succecssThresholdPerc;
     }
 
     private File chartsOutputDir;
@@ -53,11 +52,11 @@ public class JMeterTaskExt extends JMeterTask {
         this.chartsOutputDir = chartsOutputDir;
     }
 
-    public int getFailThresholdAsInt() {
+    public int getSuccecssThresholdAsInt() {
         try {
-            return Integer.parseInt(getFailThreshold());
+            return Integer.parseInt(getSuccecssThresholdPerc());
         } catch (NumberFormatException e) {
-            Log.msg(Log.WARNING, "Unable to parse failThreshold. Use default of 100%");
+            Log.msg(Log.WARNING, "Unable to parse succecssThreshold. Use default of 100%");
             return 100;
         }
     }
@@ -65,7 +64,6 @@ public class JMeterTaskExt extends JMeterTask {
     public void execute() throws BuildException {
         try {
             super.execute();
-            checkForFailure();
             generateCharts();
         } catch (RuntimeException e) {
             throw new BuildException("Unexpected exception: " + e.getMessage());
@@ -81,8 +79,9 @@ public class JMeterTaskExt extends JMeterTask {
                 name = name.substring(0, pos);
                 File jmxChartFile = new File(chartsOutputDir, name + "_jmxChart.png");
                 File perfChartFile = new File(chartsOutputDir, name + "_perfChart.png");
-                ChartGenerator dataExtractor = new ChartGenerator(result, jmxChartFile, perfChartFile);
-                log("Generating charts with data extracted from " + result.getAbsolutePath(), Project.MSG_VERBOSE);
+                File fullResult = new File(getResultLogDir(), result.getName());
+                ChartGenerator dataExtractor = new ChartGenerator(fullResult, jmxChartFile, perfChartFile);
+                log("Generating charts with data extracted from " + fullResult.getAbsolutePath(), Project.MSG_VERBOSE);
                 dataExtractor.generate();
                 log("Charts generated in '" + jmxChartFile.getAbsolutePath() + "' and '" + perfChartFile.getAbsolutePath() + "'", Project.MSG_VERBOSE);
             }
@@ -103,32 +102,28 @@ public class JMeterTaskExt extends JMeterTask {
         return resultLogFiles;
     }
 
-    private void checkForFailure() throws BuildException {
-        // as check for failure is private, it's unset and then re-set using
-        // threshold
-        unsetFailure(getFailureProperty());
+    protected void checkForFailures() throws BuildException {
+        JMeterUtils.setJMeterHome(getJmeterHome().getAbsolutePath());
+        JMeterUtils.loadJMeterProperties(getJmeterProperties().getAbsolutePath());
         if (getFailureProperty() != null && getFailureProperty().trim().length() > 0) {
             AbstractList<File> resultFiles = getResultLogFiles();
             for (Iterator<File> i = resultFiles.iterator(); i.hasNext();) {
-                File resultLogFile = (File) i.next();
-                log("Checking result log file " + resultLogFile.getName() + ".", Project.MSG_VERBOSE);
+                File resultLogFile = new File(getResultLogDir(), ((File) i.next()).getName());
+                log("Processing " + resultLogFile.getAbsolutePath());
                 SuccessParser parser = new SuccessParser(resultLogFile);
                 parser.handleResults();
                 int totals = parser.getTotal();
                 int successes = parser.getSuccesses();
-                double perc = 100 * successes / totals;
-                if (perc > getFailThresholdAsInt()) {
+                int failures = totals - successes;
+                int succecssThresholdPerc = getSuccecssThresholdAsInt();
+                double percSuccesses = 100 * successes / totals;
+                log(String.format("Total samples: %s, successes: %s, failures: %s", totals, successes, failures), Project.MSG_VERBOSE);
+                log(String.format("Success percent: $s, success threshold percent: %s", percSuccesses, succecssThresholdPerc));
+                if (percSuccesses < succecssThresholdPerc) {
                     setFailure(getFailureProperty());
-                }
-                if (perc != 100.0) {
-                    log("Failures detected above the set threshold: " + Math.round(perc) + "%");
                 }
             }
         }
-    }
-
-    private void unsetFailure(String failureProperty) {
-        getProject().setProperty(failureProperty, null);
     }
 
 }

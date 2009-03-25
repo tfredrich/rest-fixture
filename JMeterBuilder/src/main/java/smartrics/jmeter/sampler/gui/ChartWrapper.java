@@ -27,8 +27,6 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +42,6 @@ import org.jCharts.axisChart.customRenderers.axisValue.renderers.ValueLabelRende
 import org.jCharts.chartData.AxisChartDataSet;
 import org.jCharts.chartData.ChartDataException;
 import org.jCharts.chartData.DataSeries;
-import org.jCharts.encoders.PNGEncoder;
 import org.jCharts.properties.AxisProperties;
 import org.jCharts.properties.ChartProperties;
 import org.jCharts.properties.DataAxisProperties;
@@ -221,32 +218,6 @@ public class ChartWrapper {
             d[0][i] = _data[index][i];
         }
         return d;
-    }
-
-    public synchronized void saveGraph(String fileName) {
-        String extension = ".png";
-        FileOutputStream fileOutputStream = null;
-        if (fileName != null && !("".equals(fileName.trim()))) {
-            fileName = fileName.trim();
-            if (fileName.toLowerCase().endsWith(extension)) {
-                fileName = fileName.substring(0, fileName.length() - 4);
-            }
-            try {
-
-                fileOutputStream = new FileOutputStream(fileName + extension);
-                PNGEncoder.encode(getChart(), fileOutputStream);
-                fileOutputStream.flush();
-            } catch (Throwable throwable) {
-                log.warn("Unable to save graph in " + fileName, throwable);
-            } finally {
-                if (fileOutputStream != null)
-                    try {
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        log.warn("Unable to close " + fileName, e);
-                    }
-            }
-        }
     }
 
     protected String[] formattedKeys() {

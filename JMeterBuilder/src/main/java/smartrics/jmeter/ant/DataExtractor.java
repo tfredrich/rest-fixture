@@ -61,6 +61,7 @@ public abstract class DataExtractor {
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("Invalid input file " + jtlFilePath, e);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new IllegalArgumentException("Unable to load test results from " + jtlFilePath, e);
         }
     }
