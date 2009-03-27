@@ -34,6 +34,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
+import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
@@ -154,42 +155,62 @@ public class RestClientImpl implements RestClient {
         m.setQueryString(request.getQuery());
         if (m instanceof EntityEnclosingMethod) {
             RequestEntity requestEntity = null;
-            String fileName = request.getMultipartFileName();
+            String fileName = request.getFileName();
             if (fileName != null) {
-                File file = new File(fileName);
-                try {
-                    requestEntity = new MultipartRequestEntity(new Part[] { new FilePart(file.getName(), file) }, ((EntityEnclosingMethod)m).getParams());
-                } catch (FileNotFoundException e) {
-                    LOG.error(String.format("File %s not found", fileName), e);
-                    throw new IllegalArgumentException(e);
-                }
+                requestEntity = configureFileUpload(fileName);
             } else {
-                requestEntity = new RequestEntity() {
-                    public boolean isRepeatable() {
-                        return true;
-                    }
-    
-                    public void writeRequest(OutputStream out) throws IOException {
-                        PrintWriter printer = new PrintWriter(out);
-                        printer.print(request.getBody());
-                        printer.flush();
-                    }
-    
-                    public long getContentLength() {
-                        return request.getBody().getBytes().length;
-                    }
-    
-                    public String getContentType() {
-                        List<smartrics.rest.client.RestData.Header> values = request.getHeader("Content-Type");
-                        String v = "text/xml";
-                        if (values.size() != 0)
-                            v = values.get(0).getValue();
-                        return v;
-                    }
-                };
+                fileName = request.getMultipartFileName();
+                if (fileName != null) {
+                    requestEntity = configureMultipartFileUpload(m, request, requestEntity, fileName);
+                } else {
+                    requestEntity = new RequestEntity() {
+                        public boolean isRepeatable() {
+                            return true;
+                        }
+
+                        public void writeRequest(OutputStream out) throws IOException {
+                            PrintWriter printer = new PrintWriter(out);
+                            printer.print(request.getBody());
+                            printer.flush();
+                        }
+
+                        public long getContentLength() {
+                            return request.getBody().getBytes().length;
+                        }
+
+                        public String getContentType() {
+                            List<smartrics.rest.client.RestData.Header> values = request.getHeader("Content-Type");
+                            String v = "text/xml";
+                            if (values.size() != 0)
+                                v = values.get(0).getValue();
+                            return v;
+                        }
+                    };
+                }
             }
             ((EntityEnclosingMethod) m).setRequestEntity(requestEntity);
         }
+    }
+
+    private RequestEntity configureMultipartFileUpload(HttpMethod m, final RestRequest request, RequestEntity requestEntity, String fileName) {
+        File file = new File(fileName);
+        try {
+            requestEntity = new MultipartRequestEntity(new Part[] { new FilePart(request.getMultipartFileParameterName(), file) }, ((EntityEnclosingMethod) m).getParams());
+        } catch (FileNotFoundException e) {
+            LOG.error(String.format("File %s not found", fileName), e);
+            throw new IllegalArgumentException(e);
+        }
+        return requestEntity;
+    }
+
+    private RequestEntity configureFileUpload(String fileName) {
+        final File file = new File(fileName);
+        if (!file.exists()) {
+            String message = String.format("File %s not found", fileName);
+            LOG.error(message);
+            throw new IllegalArgumentException(message);
+        }
+        return new FileRequestEntity(file, "application/octet-stream");
     }
 
     public String getContentType(RestRequest request) {
@@ -203,8 +224,7 @@ public class RestClientImpl implements RestClient {
     private void setUri(HttpMethod m, String hostAddr, RestRequest request) {
         String host = hostAddr == null ? client.getHostConfiguration().getHost() : hostAddr;
         if (host == null)
-            throw new IllegalStateException("hostAddress is null: please config httpClient host configuration or "
-                    + "pass a valid host address or config a baseUrl on this client");
+            throw new IllegalStateException("hostAddress is null: please config httpClient host configuration or " + "pass a valid host address or config a baseUrl on this client");
         String uriString = host + request.getResource();
         try {
             m.setURI(new URI(uriString, false));
@@ -247,8 +267,7 @@ public class RestClientImpl implements RestClient {
             HttpMethod m = clazz.newInstance();
             return m;
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(className + " not found: you may be using a too old or "
-                    + "too new version of HttpClient", e);
+            throw new IllegalStateException(className + " not found: you may be using a too old or " + "too new version of HttpClient", e);
         } catch (InstantiationException e) {
             throw new IllegalStateException("An object of type " + className + " cannot be instantiated", e);
         } catch (IllegalAccessException e) {
@@ -256,7 +275,6 @@ public class RestClientImpl implements RestClient {
         } catch (RuntimeException e) {
             throw new IllegalStateException("Exception when instantiating: " + className, e);
         }
-
     }
 
     private void addHeaders(HttpMethod m, RestRequest request) {
@@ -264,5 +282,4 @@ public class RestClientImpl implements RestClient {
             m.addRequestHeader(h.getName(), h.getValue());
         }
     }
-
 }
