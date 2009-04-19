@@ -4,16 +4,10 @@
  *
  *  JMeterRestSampler (http://code.google.com/p/rest-fixture/) is free software:
  *  you can redistribute it and/or modify it under the terms of the
- *  GNU Lesser General Public License as published by the Free Software Foundation,
- *  either version 3 of the License, or (at your option) any later version.
+ *  BSD License
  *
- *  JMeterRestSampler is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with JMeterRestSampler.  If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the BSD License
+ *  along with JMeterRestSampler.  If not, see <http://opensource.org/licenses/bsd-license.php>.
  *
  *  If you want to contact the author please see http://smartrics.blogspot.com
  */
