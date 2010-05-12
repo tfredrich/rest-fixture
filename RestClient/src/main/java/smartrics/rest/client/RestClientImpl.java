@@ -195,7 +195,7 @@ public class RestClientImpl implements RestClient {
     private RequestEntity configureMultipartFileUpload(HttpMethod m, final RestRequest request, RequestEntity requestEntity, String fileName) {
         File file = new File(fileName);
         try {
-            requestEntity = new MultipartRequestEntity(new Part[] { new FilePart(request.getMultipartFileParameterName(), file) }, ((EntityEnclosingMethod) m).getParams());
+            requestEntity = new MultipartRequestEntity(new Part[] { new FilePart(request.getMultipartFileParameterName(), file, request.getMultipartContentType(), request.getMultipartCharset()) }, ((EntityEnclosingMethod) m).getParams());
         } catch (FileNotFoundException e) {
             LOG.error(String.format("File %s not found", fileName), e);
             throw new IllegalArgumentException(e);

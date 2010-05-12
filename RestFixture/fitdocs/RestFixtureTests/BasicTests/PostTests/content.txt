@@ -51,8 +51,8 @@ Variables may be substitued in the expected result
 
 |!-smartrics.rest.fitnesse.fixture.RestFixture-!|http://${jettyHost}:${jettyPort}|
 |GET    | /resources/%id%.json | 200 |Content-Type : application/json |!-
-  /resource/name[text()='test post'] <br/>
-  /resource/data[text()='some data']
+ /resource/name[text()='test post'] <br/>
+ /resource/data[text()='some data']
 -!|
 
 !**** File uploads

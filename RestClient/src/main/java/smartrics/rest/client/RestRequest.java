@@ -20,6 +20,8 @@
  */
 package smartrics.rest.client;
 
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+
 /**
  * Wraps a REST request object.
  */
@@ -34,6 +36,8 @@ public class RestRequest extends RestData {
     private static final String FILE = "file";
     private String fileName;
     private String multipartFileName;
+    private String multipartContentType = FilePart.DEFAULT_CONTENT_TYPE;
+    private String multipartCharset = FilePart.DEFAULT_CHARSET;
     private String multipartFileParameterName = FILE;
     private String query;
     private Method method;
@@ -92,6 +96,13 @@ public class RestRequest extends RestData {
     }
 
     /**
+     * @return the multipart upload file content-type for this request
+     */
+    public String getMultipartContentType() {
+        return multipartContentType;
+    }
+    
+    /**
      * @return the multipart file form parameter name for this request
      */
     public String getMultipartFileParameterName() {
@@ -119,6 +130,18 @@ public class RestRequest extends RestData {
      */
     public RestRequest setMultipartFileName(String multipartFileName) {
         this.multipartFileName = multipartFileName;
+        return this;
+    }
+    
+    /**
+     * Sets the multipart upload file content-type for this request.
+     * 
+     * @param multipartContentType
+     *            the multipart content-type
+     * @return this request
+     */
+    public RestRequest setMultipartContentType(String multipartContentType) {
+        this.multipartContentType = multipartContentType;
         return this;
     }
 
@@ -163,4 +186,12 @@ public class RestRequest extends RestData {
         builder.append(super.toString());
         return builder.toString();
     }
+
+	public void setMultipartCharset(String multipartCharset) {
+		this.multipartCharset = multipartCharset;
+	}
+
+	public String getMultipartCharset() {
+		return multipartCharset;
+	}
 }

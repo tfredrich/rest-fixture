@@ -30,7 +30,8 @@ import smartrics.rest.client.RestData.Header;
  * @author fabrizio
  */
 public enum ContentType {
-    XML("application/xml"), JSON("application/json"), TEXT("text/plain"), UNKNOWN(null), JSONX("application/x-javascript");
+	XML("application/xml"), JSON("json"), APPJSON("application/json"), TEXT(
+			"text/plain"), UNKNOWN(null), JSONX("application/x-javascript");
     private String contentTypeString;
 
     ContentType(String contentTypeString) {
@@ -42,14 +43,20 @@ public enum ContentType {
                 || !"Content-Type".equals(contentTypeHeaders.get(0).getName()))
             return UNKNOWN;
         String typeString = contentTypeHeaders.get(0).getValue();
+		return parse(typeString);
+	}
+
+	public static ContentType parse(String typeString) {
         if (typeString == null)
             return UNKNOWN;
         if (typeString.contains(XML.contentTypeString))
             return XML;
         else if (typeString.contains(JSON.contentTypeString))
-            return JSON;
+			return APPJSON;
         else if (typeString.contains(JSONX.contentTypeString))
-            return JSON;
+			return APPJSON;
+		else if (typeString.contains(APPJSON.contentTypeString))
+			return APPJSON;
         else if (typeString.contains(TEXT.contentTypeString))
             return TEXT;
         else

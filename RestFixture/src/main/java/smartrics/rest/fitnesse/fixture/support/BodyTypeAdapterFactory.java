@@ -23,13 +23,20 @@ package smartrics.rest.fitnesse.fixture.support;
 public class BodyTypeAdapterFactory {
 
 	public static BodyTypeAdapter getBodyTypeAdapter(ContentType content) {
-		if (content == ContentType.JSON)
+		return getBodyTypeAdapter(content, null);
+	}
+
+	public static BodyTypeAdapter getBodyTypeAdapter(ContentType content,
+			ContentType requestedContentType) {
+		ContentType effectiveContentType = (requestedContentType == null) ? content
+				: requestedContentType;
+		if (effectiveContentType == ContentType.APPJSON)
 			return new JSONBodyTypeAdapter();
-		else if (content == ContentType.XML)
+		else if (effectiveContentType == ContentType.XML)
 			return new XPathBodyTypeAdapter();
-		else if (content == ContentType.TEXT)
+		else if (effectiveContentType == ContentType.TEXT)
 			return new TextBodyTypeAdapter();
-		else if (content == ContentType.UNKNOWN)
+		else if (effectiveContentType == ContentType.UNKNOWN)
 			return new XPathBodyTypeAdapter();
 		else
 			throw new IllegalArgumentException(

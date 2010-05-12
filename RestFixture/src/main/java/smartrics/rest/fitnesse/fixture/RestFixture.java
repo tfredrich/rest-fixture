@@ -146,6 +146,8 @@ public class RestFixture extends ActionFixture {
 
 	private String multipartFileName = null;
 
+	private String multipartContentType = null;
+
 	private String multipartFileParameterName = FILE;
 
 	private String requestBody;
@@ -283,8 +285,20 @@ public class RestFixture extends ActionFixture {
 	}
 
 	/**
-	 * <code>| setFileName | Name of file |</code> <p/> body text should be
-	 * location of file which needs to be sent
+	 * <code>| setMultipartContentType | content type |</code>
+	 * <p/>
+	 * body text should be the content type of the file to be sent
+	 */
+	public void setMultipartContentType() {
+		if (cells.more == null)
+			throw new FitFailureException("You must pass a body to set");
+		multipartContentType = variables.substitute(cells.more.text());
+	}
+
+	/**
+	 * <code>| setFileName | Name of file |</code>
+	 * <p/>
+	 * body text should be location of file which needs to be sent
 	 */
 	public void setFileName() {
 		if (cells.more == null)
@@ -407,6 +421,13 @@ public class RestFixture extends ActionFixture {
 		debugMethodCallStart();
 		doMethod(emptifyBody(requestBody), "Post");
 		debugMethodCallEnd();
+	}
+
+	public void sleep() throws InterruptedException {
+		debugMethodCallStart();
+		String timeMillisecondsString = cells.more.text().trim();
+		int timeMilliseconds = Integer.parseInt(timeMillisecondsString);
+		Thread.sleep(timeMilliseconds);
 	}
 
 	/**
@@ -541,7 +562,7 @@ public class RestFixture extends ActionFixture {
 	}
 
 	private String getLastResponseBodyAsXml() throws IOException {
-		if(getContentTypeOfLastResponse().equals(ContentType.JSON) || getContentTypeOfLastResponse().equals(ContentType.JSONX))
+		if(getContentTypeOfLastResponse().equals(ContentType.JSON) || getContentTypeOfLastResponse().equals(ContentType.JSONX) || getContentTypeOfLastResponse().equals(ContentType.APPJSON))
 			return Tools.fromJSONtoXML(getLastResponse().getBody());
 
 		return getLastResponse().getBody();
@@ -596,10 +617,23 @@ public class RestFixture extends ActionFixture {
 
 	private void doMethod(String body, String method) {
 		String resUrl = resolve(FIND_VARS_PATTERN, cells.more.text());
+
+		ContentType assertBodyAsContentType = null;
+		try {
+			String assertBodyAsContentTypeString = resolve(FIND_VARS_PATTERN, cells.more.more.more.more.more.text());
+			if(assertBodyAsContentTypeString != null && !assertBodyAsContentTypeString.equals(""))
+				assertBodyAsContentType = ContentType.parse(assertBodyAsContentTypeString);
+		} catch (NullPointerException e) {
+		}
+
 		setLastRequest(new RestRequest());
 		getLastRequest().setMethod(RestRequest.Method.valueOf(method));
 		getLastRequest().setFileName(fileName);
 		getLastRequest().setMultipartFileName(multipartFileName);
+		
+		if( multipartContentType != null )
+			getLastRequest().setMultipartContentType(multipartContentType);
+
 		getLastRequest().setMultipartFileParameterName(
 				multipartFileParameterName);
 		getLastRequest().addHeaders(getHeaders());
@@ -613,14 +647,14 @@ public class RestFixture extends ActionFixture {
 			getLastRequest().setBody(rBody);
 		}
 		setLastResponse(restClient.execute(getLastRequest()));
-		completeHttpMethodExecution();
+		completeHttpMethodExecution(assertBodyAsContentType);
 	}
 
 	private ContentType getContentTypeOfLastResponse() {
 		return ContentType.parse(getLastResponse().getHeader("Content-Type"));
 	}
 
-	private void completeHttpMethodExecution() {
+	private void completeHttpMethodExecution(ContentType assertBodyAsContentType) {
 		String uri = getLastResponse().getResource();
 		if (getLastRequest().getQuery() != null) {
 			uri = uri + "?" + getLastRequest().getQuery();
@@ -635,7 +669,8 @@ public class RestFixture extends ActionFixture {
 				cells.more.more.more.more.body);
 		process(cells.more.more.more.more, getLastResponse().getBody(),
 				BodyTypeAdapterFactory
-						.getBodyTypeAdapter(getContentTypeOfLastResponse()));
+						.getBodyTypeAdapter(getContentTypeOfLastResponse(),
+								assertBodyAsContentType));
 	}
 
 	private void process(Parse expected, Object actual, RestDataTypeAdapter ta) {
@@ -646,7 +681,8 @@ public class RestFixture extends ActionFixture {
 		} else {
 			boolean success = false;
 			try {
-				success = ta.equals(ta.parse(variables.substitute(expected.text())), actual);
+				String substitutedExpected = variables.substitute(expected.text());
+				success = ta.equals(ta.parse(substitutedExpected), actual);
 			} catch (Exception e) {
 				exception(expected, e);
 				return;

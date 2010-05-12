@@ -13,6 +13,9 @@ public class TextBodyTypeAdapter extends BodyTypeAdapter {
 			expected = ((Parse) r1).text();
 		}
 		String actual = (String) r2;
+		if ("no-body".equals(expected.trim())) {
+			return actual == null || actual.trim().equals("");
+		}
 		if (!actual.equals(expected)) {
 			addError("not match: " + expected);
 		}

@@ -29,7 +29,7 @@ public class BodyTypeAdapterFactoryTest {
 	public void jsonContentTypeReturnsJSONBodyTypeAdapter() {
 		// act
 		BodyTypeAdapter bodyTypeAdapter = BodyTypeAdapterFactory
-				.getBodyTypeAdapter(ContentType.JSON);
+				.getBodyTypeAdapter(ContentType.APPJSON);
 		// assert
 		assertTrue(bodyTypeAdapter instanceof JSONBodyTypeAdapter);
 	}

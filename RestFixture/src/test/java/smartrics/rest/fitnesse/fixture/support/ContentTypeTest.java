@@ -50,7 +50,7 @@ public class ContentTypeTest {
 		List<Header> headers = new ArrayList<Header>();
 		headers.add(new RestData.Header("Content-Type", "application/json"));
 		// act & assert
-		assertEquals(ContentType.JSON, ContentType.parse(headers));
+		assertEquals(ContentType.APPJSON, ContentType.parse(headers));
 	}
 
 	// make sure you can get the right ContentType when header is
