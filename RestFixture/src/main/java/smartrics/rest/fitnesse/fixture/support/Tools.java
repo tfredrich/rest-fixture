@@ -25,8 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,17 +41,18 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.copy.HierarchicalStreamCopier;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
-
 public final class Tools {
+
+	private static final String ARRAY_ITEM_ELEMENT_NAME = "item";
+	private static final String ARRAY_ELEMENT_NAME = "list";
 
 	private Tools() {
 
@@ -98,14 +97,47 @@ public final class Tools {
 		}
 	}
 
-	public static String fromJSONtoXML(String json) throws IOException {
-		HierarchicalStreamDriver driver = new JettisonMappedXmlDriver();
-		StringReader reader = new StringReader(json);
-		HierarchicalStreamReader hsr = driver.createReader(reader);
-		StringWriter writer = new StringWriter();
-		new HierarchicalStreamCopier().copy(hsr, new PrettyPrintWriter(writer));
-		writer.close();
-		return writer.toString();
+	public static String fromJSONtoXML(String jsonString) throws IOException {
+		JSONObject json;
+
+		try {
+			json = new JSONObject(jsonString);
+		} catch (JSONException e) {
+			return fromJsonArrayToXML(jsonString);
+		}
+
+		try {
+			if (json.length() == 1)
+			{
+				String key = (String) json.keys().next();
+				Object obj = json.get(key);
+
+				if (obj instanceof JSONArray) {
+					json = new JSONObject().put(ARRAY_ELEMENT_NAME, json);
+				}
+			}
+
+			return XML.toString(json);
+		} catch (JSONException e) {
+			return fromJsonArrayToXML(jsonString);
+		}
+
+	}
+
+	/**
+	 * @param jsonString
+	 * @return XML string
+	 */
+	public static String fromJsonArrayToXML(String jsonString)
+			throws IOException {
+		try {
+			JSONArray array = new JSONArray(jsonString);
+			JSONObject list = new JSONObject().put(ARRAY_ITEM_ELEMENT_NAME, array);
+			JSONObject json = new JSONObject().put(ARRAY_ELEMENT_NAME, list);
+			return XML.toString(json);
+		} catch (JSONException e) {
+			throw new IOException(e);
+		}
 	}
 
 	/**
