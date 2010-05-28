@@ -98,46 +98,53 @@ public final class Tools {
 	}
 
 	public static String fromJSONtoXML(String jsonString) throws IOException {
-		JSONObject json;
-
-		try {
-			json = new JSONObject(jsonString);
-		} catch (JSONException e) {
-			return fromJsonArrayToXML(jsonString);
+		if (jsonString == null || jsonString.trim().length() == 0) {
+			return null;
 		}
 
-		try {
-			if (json.length() == 1)
-			{
-				String key = (String) json.keys().next();
-				Object obj = json.get(key);
+		String json = jsonString.trim();
 
-				if (obj instanceof JSONArray) {
-					json = new JSONObject().put(ARRAY_ELEMENT_NAME, json);
-				}
+		try {
+			if (json.startsWith("[")) {
+				return fromJsonArrayToXml(new JSONArray(json));
 			}
 
-			return XML.toString(json);
-		} catch (JSONException e) {
-			return fromJsonArrayToXML(jsonString);
-		}
-
-	}
-
-	/**
-	 * @param jsonString
-	 * @return XML string
-	 */
-	public static String fromJsonArrayToXML(String jsonString)
-			throws IOException {
-		try {
-			JSONArray array = new JSONArray(jsonString);
-			JSONObject list = new JSONObject().put(ARRAY_ITEM_ELEMENT_NAME, array);
-			JSONObject json = new JSONObject().put(ARRAY_ELEMENT_NAME, list);
-			return XML.toString(json);
+			return fromJsonObjectToXml(new JSONObject(json));
 		} catch (JSONException e) {
 			throw new IOException(e);
 		}
+	}
+
+	/**
+	 * @param jsonObject
+	 * @return
+	 * @throws JSONException
+	 */
+	public static String fromJsonObjectToXml(JSONObject jsonObject)
+			throws JSONException {
+		if (jsonObject.length() == 1) {
+			String key = (String) jsonObject.keys().next();
+			Object obj = jsonObject.get(key);
+
+			if (obj instanceof JSONArray) {
+				jsonObject = new JSONObject().put(ARRAY_ELEMENT_NAME, jsonObject);
+			}
+		}
+
+		return XML.toString(jsonObject);
+	}
+
+	/**
+	 * @param jsonArray
+	 * @return
+	 * @throws JSONException
+	 */
+	public static String fromJsonArrayToXml(JSONArray jsonArray)
+			throws JSONException {
+		JSONObject list = new JSONObject().put(ARRAY_ITEM_ELEMENT_NAME,
+				jsonArray);
+		JSONObject json = new JSONObject().put(ARRAY_ELEMENT_NAME, list);
+		return XML.toString(json);
 	}
 
 	/**
