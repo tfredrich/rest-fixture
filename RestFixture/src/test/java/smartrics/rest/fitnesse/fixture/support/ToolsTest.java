@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -147,6 +148,46 @@ public class ToolsTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void shouldNotifyCallerWhenXmlCannotBeParsed(){
 		Tools.extractXPath("/a[text()='1']", null);
+	}
+
+	@Test
+	public void shouldConvertJsonListToXmlElements() throws IOException {
+		String json = "{\"announcement\":[{\"id\":1005,\"subject\":\"blahblahblah\"},{\"id\":1006,\"subject\":\"blahblahblah2\"}]}";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/announcement[2]/id[text()='1006']", xml,
+				XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldExtractXPathFromFlatJson() throws IOException {
+		String json = "{\"announcement\":[{\"xlink\":\"/announcements/1005\",\"id\":1005,\"subject\":\"This is a long announcement\",\"text\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo ligula id justo laoreet ut scelerisque massa malesuada. Fusce nulla neque, lacinia eget adipiscing at, hendrerit et magna. Ut ornare ante a leo gravida viverra. Duis a odio metus. Duis mauris velit, auctor ut posuere sit amet, sollicitudin ac magna. Ut auctor sollicitudin lacus, eu lobortis urna convallis id. Phasellus lacinia dictum sem, in laoreet nunc feugiat vel. Aenean justo lacus, fringilla quis euismod sit amet, bibendum quis est. Etiam egestas, nibh quis vulputate molestie, tellus leo accumsan nisl, in commodo eros libero nec ipsum. Curabitur lacinia interdum nulla, eu mollis enim adipiscing eu. Proin semper pulvinar ante eu egestas. Nam in diam a velit elementum pretium et sagittis risus. Integer enim dui, varius vel dignissim non, aliquet vitae tellus. Donec faucibus dolor vitae sem elementum imperdiet placerat dolor condimentum. Aliquam erat volutpat. Quisque cursus lectus nisl. Nunc ut velit non odio vestibulum iaculis quis eu elit. Proin sodales mauris ut libero tempor non egestas risus laoreet.\\r\\n\",\"submitter\":\"Cam Forp\",\"startdisplaydate\":\"2010-05-17T19:00:00\",\"enddisplaydate\":\"2020-01-11T06:59:00\",\"announcementscopes\":[{\"xlink\":\"/courses/2022005\",\"scopetargetid\":2022005,\"scopetargettype\":\"course\"}]},{\"xlink\":\"/announcements/1006\",\"id\":1006,\"subject\":\"qwerty\",\"text\":\"qwerty\\r\\n\",\"submitter\":\"Cam Forp\",\"startdisplaydate\":\"2010-05-11T06:00:00\",\"enddisplaydate\":\"2011-01-11T06:59:00\",\"announcementscopes\":[{\"xlink\":\"/courses/2022005\",\"scopetargetid\":2022005,\"scopetargettype\":\"course\"}]}]}";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(
+				Boolean.TRUE,
+				Tools
+						.extractXPath(
+								"/list/announcement[2]/announcementscopes[1]/scopetargetid[text()='2022005']",
+								xml, XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldExtractXPathFromWellFormedJson() throws IOException {
+		String json = "{ \"resource\" : { \"name\" : \"test post\", \"data\" : \"some data\" } }";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/resource/name[text()='test post']", xml,
+				XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldConvertJsonArrayToXmlElements() throws IOException {
+		String json = "[{\"id\":1005,\"subject\":\"blahblahblah\"},{\"id\":1006,\"subject\":\"blahblahblah2\"}]";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item[2]/id[text()='1006']",
+				xml,
+				XPathConstants.BOOLEAN));
 	}
 
 }
