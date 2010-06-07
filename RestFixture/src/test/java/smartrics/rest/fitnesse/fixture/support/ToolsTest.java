@@ -195,9 +195,12 @@ public class ToolsTest {
 	public void shouldConvertJsonUnnamedRootToXmlElements() throws IOException {
 		String json = "{\"access_token\":\"mauth|79889m9rwet|2114798|2010-06-07T09%3a51%3a03|66cb32d9e0cf9ea2dad1f999946af951\",\"expires\":3600}";
 		String xml = Tools.fromJSONtoXML(json);
+		System.out.println(xml);
 		assertEquals(Boolean.TRUE, Tools.extractXPath(
 				"/root/access_token[starts-with(text(),'mauth')]", xml,
 				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/root/expires[text()='3600']", xml, XPathConstants.BOOLEAN));
 	}
 
 	@Test
