@@ -41,6 +41,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.json.JSON;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -99,18 +100,8 @@ public final class Tools {
 	}
 
 	public static String fromJSONtoXML(String jsonString) throws IOException {
-		if (jsonString == null || jsonString.trim().length() == 0) {
-			return null;
-		}
-
-		String json = jsonString.trim();
-
 		try {
-			if (json.startsWith("[")) {
-				return fromJsonArrayToXml(new JSONArray(json));
-			}
-
-			return fromJsonObjectToXml(new JSONObject(json));
+			return JSON.toXml(jsonString);
 		} catch (JSONException e) {
 			throw new IOException(e);
 		}
@@ -162,7 +153,8 @@ public final class Tools {
 			return o;
 		} catch (XPathExpressionException e) {
 			throw new IllegalArgumentException(
-					"xPath expression can not be executed: " + xpathExpression);
+					"xPath expression can not be executed: " + xpathExpression
+							+ " on content: " + content);
 		}
 	}
 
