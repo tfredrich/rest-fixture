@@ -22,6 +22,6 @@
 	<classpathentry kind="lib" path="lib/restclient/RestClient.jar"/>
 	<classpathentry kind="lib" path="lib/oreilly/cos.jar"/>
 	<classpathentry kind="lib" path="lib/commons/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/json/json-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/json/json-1.0.0.jar" sourcepath="lib/json/json-1.0.0-src.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

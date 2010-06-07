@@ -53,6 +53,7 @@ public final class Tools {
 
 	private static final String ARRAY_ITEM_ELEMENT_NAME = "item";
 	private static final String ARRAY_ELEMENT_NAME = "list";
+	private static final String UNNAMED_ROOT_NAME = "root";
 
 	private Tools() {
 
@@ -122,16 +123,17 @@ public final class Tools {
 	 */
 	public static String fromJsonObjectToXml(JSONObject jsonObject)
 			throws JSONException {
-		if (jsonObject.length() == 1) {
-			String key = (String) jsonObject.keys().next();
-			Object obj = jsonObject.get(key);
+		String key = (String) jsonObject.keys().next();
+		Object obj = jsonObject.get(key);
+		String wrappingTag = null;
 
-			if (obj instanceof JSONArray) {
-				jsonObject = new JSONObject().put(ARRAY_ELEMENT_NAME, jsonObject);
-			}
+		if (obj instanceof JSONArray) {
+			wrappingTag = ARRAY_ELEMENT_NAME;
+		} else if (jsonObject.length() > 1) {
+			wrappingTag = UNNAMED_ROOT_NAME;
 		}
 
-		return XML.toString(jsonObject);
+		return XML.toString(jsonObject, wrappingTag);
 	}
 
 	/**
@@ -143,8 +145,7 @@ public final class Tools {
 			throws JSONException {
 		JSONObject list = new JSONObject().put(ARRAY_ITEM_ELEMENT_NAME,
 				jsonArray);
-		JSONObject json = new JSONObject().put(ARRAY_ELEMENT_NAME, list);
-		return XML.toString(json);
+		return XML.toString(list, ARRAY_ELEMENT_NAME);
 	}
 
 	/**

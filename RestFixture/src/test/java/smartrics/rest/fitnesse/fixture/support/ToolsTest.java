@@ -151,7 +151,7 @@ public class ToolsTest {
 	}
 
 	@Test
-	public void shouldConvertJsonListToXmlElements() throws IOException {
+	public void shouldConvertJsonNamedListToXmlElements() throws IOException {
 		String json = "{\"announcement\":[{\"id\":1005,\"subject\":\"blahblahblah\"},{\"id\":1006,\"subject\":\"blahblahblah2\"}]}";
 		String xml = Tools.fromJSONtoXML(json);
 		assertEquals(Boolean.TRUE, Tools.extractXPath(
@@ -160,7 +160,8 @@ public class ToolsTest {
 	}
 
 	@Test
-	public void shouldExtractXPathFromFlatJson() throws IOException {
+	public void shouldConvertJsonLargeNamedListToXmlElements()
+			throws IOException {
 		String json = "{\"announcement\":[{\"xlink\":\"/announcements/1005\",\"id\":1005,\"subject\":\"This is a long announcement\",\"text\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo ligula id justo laoreet ut scelerisque massa malesuada. Fusce nulla neque, lacinia eget adipiscing at, hendrerit et magna. Ut ornare ante a leo gravida viverra. Duis a odio metus. Duis mauris velit, auctor ut posuere sit amet, sollicitudin ac magna. Ut auctor sollicitudin lacus, eu lobortis urna convallis id. Phasellus lacinia dictum sem, in laoreet nunc feugiat vel. Aenean justo lacus, fringilla quis euismod sit amet, bibendum quis est. Etiam egestas, nibh quis vulputate molestie, tellus leo accumsan nisl, in commodo eros libero nec ipsum. Curabitur lacinia interdum nulla, eu mollis enim adipiscing eu. Proin semper pulvinar ante eu egestas. Nam in diam a velit elementum pretium et sagittis risus. Integer enim dui, varius vel dignissim non, aliquet vitae tellus. Donec faucibus dolor vitae sem elementum imperdiet placerat dolor condimentum. Aliquam erat volutpat. Quisque cursus lectus nisl. Nunc ut velit non odio vestibulum iaculis quis eu elit. Proin sodales mauris ut libero tempor non egestas risus laoreet.\\r\\n\",\"submitter\":\"Cam Forp\",\"startdisplaydate\":\"2010-05-17T19:00:00\",\"enddisplaydate\":\"2020-01-11T06:59:00\",\"announcementscopes\":[{\"xlink\":\"/courses/2022005\",\"scopetargetid\":2022005,\"scopetargettype\":\"course\"}]},{\"xlink\":\"/announcements/1006\",\"id\":1006,\"subject\":\"qwerty\",\"text\":\"qwerty\\r\\n\",\"submitter\":\"Cam Forp\",\"startdisplaydate\":\"2010-05-11T06:00:00\",\"enddisplaydate\":\"2011-01-11T06:59:00\",\"announcementscopes\":[{\"xlink\":\"/courses/2022005\",\"scopetargetid\":2022005,\"scopetargettype\":\"course\"}]}]}";
 		String xml = Tools.fromJSONtoXML(json);
 		assertEquals(
@@ -172,7 +173,7 @@ public class ToolsTest {
 	}
 
 	@Test
-	public void shouldExtractXPathFromWellFormedJson() throws IOException {
+	public void shouldConvertJsonNamedRootToXmlElements() throws IOException {
 		String json = "{ \"resource\" : { \"name\" : \"test post\", \"data\" : \"some data\" } }";
 		String xml = Tools.fromJSONtoXML(json);
 		assertEquals(Boolean.TRUE, Tools.extractXPath(
@@ -181,12 +182,68 @@ public class ToolsTest {
 	}
 
 	@Test
-	public void shouldConvertJsonArrayToXmlElements() throws IOException {
+	public void shouldConvertJsonUnnamedArrayToXmlElements() throws IOException {
 		String json = "[{\"id\":1005,\"subject\":\"blahblahblah\"},{\"id\":1006,\"subject\":\"blahblahblah2\"}]";
 		String xml = Tools.fromJSONtoXML(json);
 		assertEquals(Boolean.TRUE, Tools.extractXPath(
 				"/list/item[2]/id[text()='1006']",
 				xml,
+				XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldConvertJsonUnnamedRootToXmlElements() throws IOException {
+		String json = "{\"access_token\":\"mauth|79889m9rwet|2114798|2010-06-07T09%3a51%3a03|66cb32d9e0cf9ea2dad1f999946af951\",\"expires\":3600}";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/root/access_token[starts-with(text(),'mauth')]", xml,
+				XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldConvertJsonNamedValueToXmlElements() throws IOException {
+		String json = "{\"access_token\":{\"name\":\"value\"}}";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/access_token/name[text()='value']", xml,
+				XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldConvertJsonValueToXmlElements() throws IOException {
+		String json = "{\"access_token\":\"value\"}";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/access_token[text()='value']", xml, XPathConstants.BOOLEAN));
+	}
+
+	@Test
+	public void shouldConvertHeinousJsonUnnamedListToXmlElements()
+			throws IOException {
+		String json = "[{\"named_list\":[{\"a\":\"a_value\"}, {\"b\":\"b_value\"}, {\"c\":\"c_value\"}]},{\"named_root\":{\"foo\":\"bar\"}},{\"a\":\"b\",\"c\":\"d\"},[{\"humpty\":1}, {\"dumpty\":2}]]";
+		String xml = Tools.fromJSONtoXML(json);
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item/named_list/a[text()='a_value']", xml,
+				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item/named_list/b[text()='b_value']", xml,
+				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item/named_list/c[text()='c_value']", xml,
+				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item[2]/named_root/foo[text()='bar']", xml,
+				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item[3]/a[text()='b']", xml,
+				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item[3]/c[text()='d']", xml, XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item[4]/array[1]/humpty[text()='1']", xml,
+				XPathConstants.BOOLEAN));
+		assertEquals(Boolean.TRUE, Tools.extractXPath(
+				"/list/item[4]/array[2]/dumpty[text()='2']", xml,
 				XPathConstants.BOOLEAN));
 	}
 
