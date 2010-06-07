@@ -42,19 +42,12 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.json.JSON;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public final class Tools {
-
-	private static final String ARRAY_ITEM_ELEMENT_NAME = "item";
-	private static final String ARRAY_ELEMENT_NAME = "list";
-	private static final String UNNAMED_ROOT_NAME = "root";
 
 	private Tools() {
 
@@ -105,38 +98,6 @@ public final class Tools {
 		} catch (JSONException e) {
 			throw new IOException(e);
 		}
-	}
-
-	/**
-	 * @param jsonObject
-	 * @return
-	 * @throws JSONException
-	 */
-	public static String fromJsonObjectToXml(JSONObject jsonObject)
-			throws JSONException {
-		String key = (String) jsonObject.keys().next();
-		Object obj = jsonObject.get(key);
-		String wrappingTag = null;
-
-		if (obj instanceof JSONArray) {
-			wrappingTag = ARRAY_ELEMENT_NAME;
-		} else if (jsonObject.length() > 1) {
-			wrappingTag = UNNAMED_ROOT_NAME;
-		}
-
-		return XML.toString(jsonObject, wrappingTag);
-	}
-
-	/**
-	 * @param jsonArray
-	 * @return
-	 * @throws JSONException
-	 */
-	public static String fromJsonArrayToXml(JSONArray jsonArray)
-			throws JSONException {
-		JSONObject list = new JSONObject().put(ARRAY_ITEM_ELEMENT_NAME,
-				jsonArray);
-		return XML.toString(list, ARRAY_ELEMENT_NAME);
 	}
 
 	/**
