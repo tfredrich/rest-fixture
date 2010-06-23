@@ -41,11 +41,12 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.json.JSON;
-import org.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.ecollege.gson.GsonExt;
+import com.google.gson.JsonParseException;
 
 public final class Tools {
 
@@ -94,8 +95,8 @@ public final class Tools {
 
 	public static String fromJSONtoXML(String jsonString) throws IOException {
 		try {
-			return JSON.toXml(jsonString);
-		} catch (JSONException e) {
+			return GsonExt.toXml(jsonString);
+		} catch (JsonParseException e) {
 			throw new IOException(e);
 		}
 	}
