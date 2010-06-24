@@ -1,13 +1,62 @@
 RestFixture: A FitNesse fixture for testing REST API.
 
-The main purpose of this fixture is to allow developers or product
-owners to write tests for REST APIs in a simple and effective way.
-An overview of the features of this fixture is available here
-http://smartrics.blogspot.com/2008/08/get-fitnesse-with-some-rest.html
+The main purpose of this fixture is to allow developers or product owners to write tests for REST APIs in a simple and effective way. An overview of the features of this fixture is available here http://smartrics.blogspot.com/2008/08/get-fitnesse-with-some-rest.html
 
-To build RestFixture edit the build.properties and set the values of the 
-properties to reflect your environment. Then use ant to run the default target
+To build RestFixture edit the build.properties and set the values of the properties to reflect your environment. Then use ant to run the default target
 
-Note: RestFixture distribution contains the file etc/restfixture/sequence.pic 
-part of UMLGraph (http://www.umlgraph.org), distributed under BSD license (see 
-etc/restfixture/BSDLICENSE)
+Note: RestFixture distribution contains the file etc/restfixture/sequence.pic part of UMLGraph (http://www.umlgraph.org), distributed under BSD license (see etc/restfixture/BSDLICENSE)
+
+Because the RestFixture embraces the use of XPATH for verifying returned values from a REST call, for JSON results the fixture translates the returned JSON into XML before applying the XPATH assertion(s).  In order to accomplish this, the RestFixture uses GSON to parse JSON strings and GSON-EXT (available at http://github.com/tfredrich/gson-ext ) to perform the translation.
+
+Because JSON is of a different structure and less verbose than XML, depending on the structure of the JSON string, XML elements are injected during translation time.  For instance, a JSON object of:
+
+{"id":1005, "description":"this is a description"}
+
+Would get translated to XML while wrapping the entire object in a "<root>" node as follows (indentation supplied for clarity):
+
+<root>
+	<id>1005</id>
+	<description>this is a description</description>
+</root>
+
+Whereas a simple, atomical JSON object like:
+
+{"id":1005}
+
+Gets translated as:
+
+<id>1005</id>
+
+Additional cases surround JSON arrays, whether named or unnamed.  An unnamed array gets wrapped in "<list>" elements along with each array item being wrapped in an "<item>" tag.  For instance:
+
+[{"id":1005, "description":"description one"}, {"id":1006, "description":"description two"}]
+
+Becomes (indentation supplied):
+
+<list>
+	<item>
+		<id>1005</id>
+		<description>description one</description>
+	</item>
+	<item>
+		<id>1006</id>
+		<description>description two</description>
+	</item>
+</list>
+
+A named array gets translated the same way, except the object name is used to wrap the array instead of the generic "<list>" tags.  For example:
+
+{"named_list":[{"id":1005, "description":"description one"}, {"id":1006, "description":"description two"}]}
+
+Gets translated as (indentation supplied):
+
+<named_list>
+	<item>
+		<id>1005</id>
+		<description>description one</description>
+	</item>
+	<item>
+		<id>1006</id>
+		<description>description two</description>
+	</item>
+</named_list>
