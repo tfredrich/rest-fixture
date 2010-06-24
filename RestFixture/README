@@ -60,3 +60,5 @@ Gets translated as (indentation supplied):
 		<description>description two</description>
 	</item>
 </named_list>
+
+More information on how the JSON to XML translation process injects element tags, please see http://github.com/tfredrich/gson-ext
