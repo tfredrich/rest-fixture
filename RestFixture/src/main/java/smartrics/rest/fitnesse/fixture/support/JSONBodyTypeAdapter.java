@@ -70,7 +70,8 @@ public class JSONBodyTypeAdapter extends BodyTypeAdapter {
 			try {
 				boolean b = eval(expr, actual.toString());
 				if (!b) {
-					addError("not found: '" + expr + "'");
+					addError("not found: '" + expr + "' in "
+							+ Tools.fromJSONtoXML(actual.toString()) + "'");
 				}
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Cannot extract xpath '"

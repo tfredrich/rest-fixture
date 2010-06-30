@@ -140,16 +140,6 @@ public class ToolsTest {
 		Tools.extractXPath("/a[text=1", "<a>1</a>");
 	}
 
-	@Test
-	public void shouldNotifyCallerOfContentWhenXPathIsWrong() {
-		String xml = "<a>1</a>";
-		try {
-			Tools.extractXPath("/b[text=1]", xml);
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains(xml));
-		}
-	}
-
 	@Test(expected=IllegalArgumentException.class)
 	public void shouldNotifyCallerWhenXmlIsWrong(){
 		Tools.extractXPath("/a[text()='1']", "<a>1<a>");
