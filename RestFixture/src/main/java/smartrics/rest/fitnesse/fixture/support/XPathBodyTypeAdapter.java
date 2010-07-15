@@ -117,7 +117,7 @@ public class XPathBodyTypeAdapter extends BodyTypeAdapter {
 		if ("".equals(expectedListOfXpathsAsString.trim()))
 			return expectedXPathAsList;
 		expStr = Tools.fromHtml(expStr);
-		String[] nvpArray = expStr.split(System.getProperty("line.separator"));
+		String[] nvpArray = expStr.split("\r?\n");
 		for (String nvp : nvpArray) {
 			if (!"".equals(nvp.trim()))
 				expectedXPathAsList.add(nvp.trim());
