@@ -64,7 +64,7 @@ public class HeadersTypeAdapter extends RestDataTypeAdapter {
 		List<Header> expected = new ArrayList<Header>();
 		if (!"".equals(s.trim())) {
 			String expStr = Tools.fromHtml(s.trim());
-			String[] nvpArray = expStr.split(System.getProperty("line.separator"));
+			String[] nvpArray = expStr.split("\r?\n");
 			for(String nvp : nvpArray){
 				try{
 					String[] nvpEl = nvp.split(":", 2);
