@@ -40,9 +40,9 @@ import org.w3c.dom.NodeList;
 
 import smartrics.rest.client.RestClient;
 import smartrics.rest.client.RestClientImpl;
+import smartrics.rest.client.RestData.Header;
 import smartrics.rest.client.RestRequest;
 import smartrics.rest.client.RestResponse;
-import smartrics.rest.client.RestData.Header;
 import smartrics.rest.config.Config;
 import smartrics.rest.fitnesse.fixture.support.BodyTypeAdapterFactory;
 import smartrics.rest.fitnesse.fixture.support.ContentType;
@@ -677,7 +677,8 @@ public class RestFixture extends ActionFixture {
 		ta.set(actual);
 		boolean ignore = "".equals(expected.text().trim());
 		if (ignore) {
-			expected.addToBody(gray(ta.toString()));
+			if (isDisplayActualOnRight())
+				expected.addToBody(gray(ta.toString()));
 		} else {
 			boolean success = false;
 			try {
