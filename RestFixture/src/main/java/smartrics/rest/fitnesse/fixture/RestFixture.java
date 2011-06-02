@@ -40,9 +40,9 @@ import org.w3c.dom.NodeList;
 
 import smartrics.rest.client.RestClient;
 import smartrics.rest.client.RestClientImpl;
+import smartrics.rest.client.RestData.Header;
 import smartrics.rest.client.RestRequest;
 import smartrics.rest.client.RestResponse;
-import smartrics.rest.client.RestData.Header;
 import smartrics.rest.config.Config;
 import smartrics.rest.fitnesse.fixture.support.BodyTypeAdapterFactory;
 import smartrics.rest.fitnesse.fixture.support.ContentType;
@@ -159,6 +159,8 @@ public class RestFixture extends ActionFixture {
 	protected Config config;
 
 	private boolean displayActualOnRight;
+
+	private long timerMillis = 0l;
 
 	/**
 	 * the headers passed to each request by default.
@@ -423,11 +425,57 @@ public class RestFixture extends ActionFixture {
 		debugMethodCallEnd();
 	}
 
+	/**
+	 * <code>| sleep | millis |</code>
+	 */
 	public void sleep() throws InterruptedException {
 		debugMethodCallStart();
 		String timeMillisecondsString = cells.more.text().trim();
 		int timeMilliseconds = Integer.parseInt(timeMillisecondsString);
 		Thread.sleep(timeMilliseconds);
+	}
+
+	/**
+	 * <code>| startTimer |</code>
+	 */
+	public void startTimer() {
+		debugMethodCallStart();
+		this.timerMillis = System.currentTimeMillis();
+		debugMethodCallEnd();
+	}
+
+	/**
+	 * <code>| stopTimer | min(ms) | max(ms) | ?actual |</code>
+	 */
+	public void stopTimer() {
+		debugMethodCallStart();
+		long startedAt = (timerMillis == 0 ? System.currentTimeMillis()
+				: timerMillis);
+		this.timerMillis = 0;
+		long actualMillis = System.currentTimeMillis() - startedAt;
+		String minString = cells.more.text();
+		String maxString = cells.more.more.text();
+		Parse valueCell = cells.more.more.more;
+
+		if (valueCell != null) {
+			StringTypeAdapter adapter = new StringTypeAdapter();
+			try {
+				adapter.set(String.valueOf(actualMillis));
+				super.check(valueCell, adapter);
+			} catch (Exception e) {
+				exception(valueCell, e);
+			}
+		}
+
+		long min = Long.valueOf(minString);
+		long max = Long.valueOf(maxString);
+
+		if (actualMillis <= max && actualMillis >= min) {
+			right(valueCell);
+		} else {
+			wrong(valueCell);
+		}
+		debugMethodCallEnd();
 	}
 
 	/**
