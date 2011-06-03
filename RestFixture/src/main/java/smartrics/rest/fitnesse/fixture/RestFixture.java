@@ -725,7 +725,8 @@ public class RestFixture extends ActionFixture {
 		ta.set(actual);
 		boolean ignore = "".equals(expected.text().trim());
 		if (ignore) {
-			expected.addToBody(gray(ta.toString()));
+			if (isDisplayActualOnRight())
+				expected.addToBody(gray(ta.toString()));
 		} else {
 			boolean success = false;
 			try {
