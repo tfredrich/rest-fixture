@@ -22,7 +22,9 @@ package smartrics.rest.fitnesse.fixture;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +139,8 @@ import fit.exception.FitFailureException;
 public class RestFixture extends ActionFixture {
 
 	private static final String FILE = "file";
+	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 	private RestResponse lastResponse;
 
@@ -160,7 +164,7 @@ public class RestFixture extends ActionFixture {
 
 	private boolean displayActualOnRight;
 
-	private long timerMillis = 0l;
+	private long timer = 0l;
 
 	/**
 	 * the headers passed to each request by default.
@@ -436,23 +440,30 @@ public class RestFixture extends ActionFixture {
 	}
 
 	/**
-	 * <code>| startTimer |</code>
+	 * <code>| startTimer | ?timerValue |</code>
 	 */
 	public void startTimer() {
-		debugMethodCallStart();
-		this.timerMillis = System.currentTimeMillis();
-		debugMethodCallEnd();
+		timer = System.currentTimeMillis();
+		Parse valueCell = cells.more;
+
+		if (valueCell != null) {
+			StringTypeAdapter adapter = new StringTypeAdapter();
+			try {
+				adapter.set(TIMESTAMP_FORMAT.format(new Date(timer)));
+				super.check(valueCell, adapter);
+			} catch (Exception e) {
+				exception(valueCell, e);
+			}
+		}
 	}
 
 	/**
-	 * <code>| stopTimer | min(ms) | max(ms) | ?actual |</code>
+	 * <code>| checkTimer | min(ms) | max(ms) | ?actual | ?timerValue |</code>
 	 */
-	public void stopTimer() {
-		debugMethodCallStart();
-		long startedAt = (timerMillis == 0 ? System.currentTimeMillis()
-				: timerMillis);
-		this.timerMillis = 0;
-		long actualMillis = System.currentTimeMillis() - startedAt;
+	public void checkTimer() {
+		long checkedAt = System.currentTimeMillis();
+		long startedAt = (timer == 0 ? System.currentTimeMillis() : timer);
+		long actualMillis = checkedAt - startedAt;
 		String minString = cells.more.text();
 		String maxString = cells.more.more.text();
 		Parse valueCell = cells.more.more.more;
@@ -475,7 +486,18 @@ public class RestFixture extends ActionFixture {
 		} else {
 			wrong(valueCell);
 		}
-		debugMethodCallEnd();
+
+		Parse timestampCell = cells.more.more.more.more;
+
+		if (timestampCell != null) {
+			StringTypeAdapter adapter = new StringTypeAdapter();
+			try {
+				adapter.set(TIMESTAMP_FORMAT.format(new Date(checkedAt)));
+				super.check(timestampCell, adapter);
+			} catch (Exception e) {
+				exception(timestampCell, e);
+			}
+		}
 	}
 
 	/**
