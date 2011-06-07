@@ -563,6 +563,8 @@ public class RestFixture extends ActionFixture {
 				sValue = handleRegexExpression(label, loc, expr);
 			} else if ("body".equals(loc)) {
 				sValue = handleXpathExpression(label, expr);
+			} else if ("bodyregex".equals(loc)) {
+				sValue = handleRegexExpression(label, loc, expr);
 			} else {
 				throw new FitFailureException(
 						"let handles 'xpath' in body or 'regex' in headers.");
