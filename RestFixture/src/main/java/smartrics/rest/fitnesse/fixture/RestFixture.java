@@ -832,7 +832,8 @@ public class RestFixture extends ActionFixture {
 	}
 
 	void headers(String header) {
-		requestHeaders = parseHeaders(header);
+		String rHeader = resolve(FIND_VARS_PATTERN, header);
+		requestHeaders = parseHeaders(rHeader);
 	}
 
 	protected RestResponse getLastResponse() {
